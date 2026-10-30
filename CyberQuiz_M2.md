@@ -163,4 +163,4 @@ O diagrama Chen correspondente é entregue separadamente no arquivo `Tech_Trivia
 1. O M1 fornecido não contém um requisito RD03; a numeração original foi preservada, sem renumerar os códigos existentes.
 2. O M1 não define a estrutura de autenticação. O campo `senha_hash` é uma recomendação técnica de segurança para o requisito de login.
 3. O M1 não informa que deve existir uma única alternativa correta. Essa regra não é imposta neste modelo.
-4. O M1 menciona “fontes utilizadas”, mas não determina URL obrigatória; por isso, `url` está marcada como opcional.
+4. O M1 menciona “fontes utilizadas”, mas não determina URL obrigatória; por isso, `url` está marcada como opcional
