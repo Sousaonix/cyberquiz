@@ -1,0 +1,111 @@
+-- =====================================================================
+--  CyberQuiz — Passo 9: testes das regras de negócio
+-- =====================================================================
+
+-- ---------------------------------------------------------------------
+-- T1. Não existem duas categorias com o mesmo nome  (RD01)
+-- ---------------------------------------------------------------------
+-- INSERT INTO categoria (nome) VALUES ('Redes');
+-- Resultado:
+--   ERROR:  duplicate key value violates unique constraint "uq_categoria_nome"
+--   DETALHE:  Key (nome)=(Redes) already exists.
+
+-- ---------------------------------------------------------------------
+-- T2. Não existem duas fontes com a mesma URL  (RD02)
+-- ---------------------------------------------------------------------
+-- INSERT INTO fonte (descricao, url, id_publicador, id_idioma)
+-- VALUES ('Outra fonte', 'https://owasp.org/www-project-top-ten/', 1, 1);
+-- Resultado:
+--   ERROR:  duplicate key value violates unique constraint "uq_fonte_url"
+--   DETALHE:  Key (url)=(https://owasp.org/www-project-top-ten/) already exists.
+
+-- ---------------------------------------------------------------------
+-- T3. Nome de publicador não se repete  (RD03)
+-- ---------------------------------------------------------------------
+-- INSERT INTO publicador (nome) VALUES ('Mozilla');
+-- Resultado:
+--   ERROR:  duplicate key value violates unique constraint "uq_publicador_nome"
+--   DETALHE:  Key (nome)=(Mozilla) already exists.
+
+-- ---------------------------------------------------------------------
+-- T4. Pergunta sem título não entra  (RD09)
+--     O mesmo vale para enunciado e explicação: as três colunas são NOT NULL.
+-- ---------------------------------------------------------------------
+-- INSERT INTO pergunta (codigo, titulo, enunciado, explicacao, id_categoria, id_fonte)
+-- VALUES ('fact-999', NULL, 'enunciado', 'explicacao', 1, 1);
+-- Resultado:
+--   ERROR:  null value in column "titulo" of relation "pergunta"
+--           violates not-null constraint
+--   DETALHE:  Failing row contains (7, fact-999, null, enunciado, explicacao, 1, 1).
+
+-- ---------------------------------------------------------------------
+-- T5. Alternativa sem pergunta não entra  (integridade)
+-- ---------------------------------------------------------------------
+-- INSERT INTO alternativa (id_pergunta, identificador, texto)
+-- VALUES (999999, 'A', 'Alternativa órfã');
+-- Resultado:
+--   ERROR:  insert or update on table "alternativa" violates foreign key
+--           constraint "fk_alternativa_pergunta"
+--   DETALHE:  Key (id_pergunta)=(999999) is not present in table "pergunta".
+
+-- ---------------------------------------------------------------------
+-- T6. A mesma pergunta não repete o rótulo da alternativa  (RD07)
+-- ---------------------------------------------------------------------
+-- INSERT INTO alternativa (id_pergunta, identificador, texto)
+-- VALUES (1, 'A', 'Outro texto com o rótulo A');
+-- Resultado:
+--   ERROR:  duplicate key value violates unique constraint
+--           "uq_alternativa_identificador"
+--   DETALHE:  Key (id_pergunta, identificador)=(1, A) already exists.
+
+-- ---------------------------------------------------------------------
+-- T7. Uma pergunta não aceita uma segunda alternativa correta  (RD06)
+-- ---------------------------------------------------------------------
+-- INSERT INTO alternativa (id_pergunta, identificador, texto, correta)
+-- VALUES (1, 'E', 'Quinta alternativa', TRUE);
+-- Resultado:
+--   ERROR:  duplicate key value violates unique constraint
+--           "ux_alternativa_uma_correta"
+--   DETALHE:  Key (id_pergunta)=(1) already exists.
+
+-- ---------------------------------------------------------------------
+-- T8. Pergunta sem nenhuma alternativa correta não é gravada  (RD06)
+--     O gatilho é adiado: o erro aparece no COMMIT.
+--     Rode o bloco inteiro de uma vez:
+--
+--     BEGIN;
+--     INSERT INTO pergunta (codigo, titulo, enunciado, explicacao, id_categoria, id_fonte)
+--     VALUES ('fact-998', 'Sem gabarito', 'enunciado', 'explicacao', 1, 1);
+--     COMMIT;
+-- ---------------------------------------------------------------------
+-- Resultado:
+--   BEGIN
+--   INSERT 0 1
+--   ERROR:  Pergunta 8 possui 0 alternativa(s); o minimo e 2.
+--   CONTEXTO:  PL/pgSQL function fn_checar_gabarito(integer) line 17 at RAISE
+
+-- ---------------------------------------------------------------------
+-- T9. Código de idioma não se repete  (RD04)
+-- ---------------------------------------------------------------------
+-- INSERT INTO idioma (nome, codigo) VALUES ('Português (Brasil)', 'pt');
+-- Resultado:
+--   ERROR:  duplicate key value violates unique constraint "uq_idioma_codigo"
+--   DETALHE:  Key (codigo)=(pt) already exists.
+
+-- ---------------------------------------------------------------------
+-- T10. E-mail de jogador não se repete  (cadastro / RNF02)
+-- ---------------------------------------------------------------------
+-- INSERT INTO jogador (nome, email, senha_hash)
+-- VALUES ('Outro', 'teste@email.com', 'HASH_DE_EXEMPLO');
+-- Resultado (com 'teste@email.com' já gravado):
+--   ERROR:  duplicate key value violates unique constraint "uq_jogador_email"
+--   DETALHE:  Key (email)=(teste@email.com) already exists.
+
+-- ---------------------------------------------------------------------
+-- T11. Nome de categoria é obrigatório  (RNF02)
+-- ---------------------------------------------------------------------
+-- INSERT INTO categoria (nome) VALUES (NULL);
+-- Resultado:
+--   ERROR:  null value in column "nome" of relation "categoria"
+--           violates not-null constraint
+--   DETALHE:  Failing row contains (5, null).
