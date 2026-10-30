@@ -270,4 +270,4 @@ Essa consulta pode retornar perguntas sem alternativas. O M1 exige que as altern
 
 A carga de teste demonstra a organização de perguntas por categoria, fonte, publicador e idioma, além do armazenamento flexível das alternativas. As consultas recuperam e organizam os dados para o uso do quiz. Os testes negativos verificam as restrições de chave primária, chave estrangeira, obrigatoriedade e unicidade definidas no M3.
 
-**Importante:** registre os resultados reais após executar os comandos no PostgreSQL. Não declare que os testes foram executados com sucesso antes de os executar no seu ambiente.
+**Importante:** registre os resultados reais após executar os comandos no PostgreSQL. Não declare que os testes foram executados com sucesso antes de os executar no seu ambiente
