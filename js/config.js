@@ -13,7 +13,7 @@
 const parametro = new URLSearchParams(window.location.search).get("api");
 
 export const API_URL =
-  parametro !== null ? parametro : "https://cyberquiz-api.onrender.com";
+  parametro !== null ? parametro : "https://cyberquiz-api-tdba.onrender.com";
 
 // Se a API não responder nesse tempo, o quiz usa o banco local.
 export const API_TIMEOUT_MS = 5000;
