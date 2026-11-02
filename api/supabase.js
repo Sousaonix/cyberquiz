@@ -64,7 +64,7 @@ export async function carregarRanking(limite = 10) {
 
   const { data, error } = await cliente
     .from("vw_ranking")
-    .select("nome, total_pontos, acertos, erros, respostas, ultima_resposta")
+    .select("posicao, nome, total_pontos, acertos, erros, respostas, ultima_resposta")
     .limit(limite);
 
   if (error) {
@@ -72,4 +72,77 @@ export async function carregarRanking(limite = 10) {
   }
 
   return data ?? [];
+}
+
+// Grava uma rodada inteira de uma vez:
+//   1. garante o jogador pelo nome (o quiz não tem login);
+//   2. descobre o id de cada alternativa escolhida;
+//   3. insere as respostas — o gatilho do banco calcula valor_pontos;
+//   4. devolve o placar e o ranking atualizado para a tela final.
+export async function salvarRespostas({ nome, respostas }) {
+  if (!cliente) {
+    throw falha("Banco não configurado: defina SUPABASE_URL e SUPABASE_KEY no .env.", 503);
+  }
+
+  const { data: jogador, error: erroJogador } = await cliente
+    .from("jogador")
+    .upsert({ nome }, { onConflict: "nome" })
+    .select("id_jogador, nome")
+    .single();
+
+  if (erroJogador) {
+    throw falha(`Falha ao registrar o jogador: ${erroJogador.message}`, 502);
+  }
+
+  const idsPerguntas = [...new Set(respostas.map((item) => item.id_pergunta))];
+
+  const { data: alternativas, error: erroAlternativas } = await cliente
+    .from("alternativa")
+    .select("id_alternativa, id_pergunta, identificador")
+    .in("id_pergunta", idsPerguntas);
+
+  if (erroAlternativas) {
+    throw falha(`Falha ao consultar as alternativas: ${erroAlternativas.message}`, 502);
+  }
+
+  const porChave = new Map(
+    (alternativas ?? []).map((linha) => [`${linha.id_pergunta}|${linha.identificador}`, linha.id_alternativa]),
+  );
+
+  const linhas = respostas.map((item) => {
+    const idAlternativa = porChave.get(`${item.id_pergunta}|${item.escolha}`);
+    if (!idAlternativa) {
+      const erro = new Error(
+        `A pergunta ${item.id_pergunta} não tem a alternativa ${item.escolha}.`,
+      );
+      erro.status = 400;
+      throw erro;
+    }
+    return {
+      id_jogador: jogador.id_jogador,
+      id_pergunta: item.id_pergunta,
+      id_alternativa: idAlternativa,
+    };
+  });
+
+  const { data: gravadas, error: erroInsert } = await cliente
+    .from("pontuacao")
+    .insert(linhas)
+    .select("valor_pontos");
+
+  if (erroInsert) {
+    throw falha(`Falha ao gravar as respostas: ${erroInsert.message}`, 502);
+  }
+
+  const totalPontos = gravadas.reduce((soma, linha) => soma + linha.valor_pontos, 0);
+  const acertos = gravadas.filter((linha) => linha.valor_pontos > 0).length;
+
+  return {
+    jogador: { id: jogador.id_jogador, nome: jogador.nome },
+    total_pontos: totalPontos,
+    acertos,
+    erros: gravadas.length - acertos,
+    respostas: gravadas.length,
+    ranking: await carregarRanking(5),
+  };
 }

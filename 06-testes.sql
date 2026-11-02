@@ -93,13 +93,12 @@
 --   DETALHE:  Key (codigo)=(pt) already exists.
 
 -- ---------------------------------------------------------------------
--- T10. E-mail de jogador não se repete  (cadastro / RNF02)
+-- T10. Nome de jogador não se repete  (RD12 / RNF02)
 -- ---------------------------------------------------------------------
--- INSERT INTO jogador (nome, email, senha_hash)
--- VALUES ('Outro', 'teste@email.com', 'HASH_DE_EXEMPLO');
--- Resultado (com 'teste@email.com' já gravado):
---   ERROR:  duplicate key value violates unique constraint "uq_jogador_email"
---   DETALHE:  Key (email)=(teste@email.com) already exists.
+-- INSERT INTO jogador (nome) VALUES ('Nayra');
+-- Resultado (com 'Nayra' já gravado):
+--   ERROR:  duplicate key value violates unique constraint "uq_jogador_nome"
+--   DETALHE:  Key (nome)=(Nayra) already exists.
 
 -- ---------------------------------------------------------------------
 -- T11. Nome de categoria é obrigatório  (RNF02)

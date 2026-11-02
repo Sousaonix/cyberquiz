@@ -6,13 +6,19 @@
 // =====================================================================
 
 import { createServer } from "./app.js";
-import { carregarPerguntas, carregarRanking, supabaseConfigurado } from "./supabase.js";
+import {
+  carregarPerguntas,
+  carregarRanking,
+  salvarRespostas,
+  supabaseConfigurado,
+} from "./supabase.js";
 
 const port = Number(process.env.PORT) || 3000;
 
 const servidor = createServer({
   loadPerguntas: carregarPerguntas,
   loadRanking: carregarRanking,
+  salvarRespostas: salvarRespostas,
   corsOrigin: process.env.CORS_ORIGIN,
 });
 

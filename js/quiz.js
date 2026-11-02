@@ -51,6 +51,8 @@ const questionProgress = document.querySelector("#question-progress");
 const questionTitle = document.querySelector("#question-title");
 const answerGrid = document.querySelector("#answer-grid");
 const questionImage = document.querySelector("#question-image");
+const rankingStatus = document.querySelector("#ranking-status");
+const rankingList = document.querySelector("#ranking-list");
 const feedback = document.querySelector("#feedback");
 const feedbackVerdict = document.querySelector("#feedback-verdict");
 const feedbackExplanation = document.querySelector("#feedback-explanation");
@@ -69,6 +71,7 @@ const statWrong = document.querySelector("#stat-wrong");
 const statTime = document.querySelector("#stat-time");
 
 let bankPromise;
+let playerName = "";
 let round = [];
 let index = 0;
 let chosenLetters = [];
@@ -190,7 +193,7 @@ function ensureBank() {
   return bankPromise;
 }
 
-function chaveCategoria(valor) {
+function normalizar(valor) {
   return String(valor ?? "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -199,7 +202,7 @@ function chaveCategoria(valor) {
 }
 
 function arteDaCategoria(categoria) {
-  return ARTE_POR_CATEGORIA[chaveCategoria(categoria)] ?? ARTE_PADRAO;
+  return ARTE_POR_CATEGORIA[normalizar(categoria)] ?? ARTE_PADRAO;
 }
 
 function renderQuestion() {
@@ -310,6 +313,89 @@ function renderResult() {
 
   // Fanfarra quando passa de metade; melodia discreta quando não passa.
   playFinish(summary.percent >= 50);
+
+  atualizarRanking();
+}
+
+// Envia a rodada para a API, que grava no banco e devolve o ranking.
+async function atualizarRanking() {
+  rankingStatus.hidden = false;
+  rankingStatus.textContent = "Calculando…";
+  rankingList.hidden = true;
+  rankingList.replaceChildren();
+
+  if (!API_URL) {
+    rankingStatus.textContent = "Ranking indisponível no modo offline.";
+    return;
+  }
+  if (!playerName) {
+    rankingStatus.textContent = "Ranking indisponível.";
+    return;
+  }
+
+  const respostas = round.map((question, indice) => ({
+    id_pergunta: question.id,
+    escolha: chosenLetters[indice],
+  }));
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), API_TIMEOUT_MS * 3);
+
+  try {
+    const response = await fetch(`${API_URL.replace(/\/+$/, "")}/respostas`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nome: playerName, respostas }),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(`A API respondeu ${response.status}.`);
+    }
+
+    const dados = await response.json();
+    mostrarRanking(dados.ranking);
+  } catch (erro) {
+    console.warn("CyberQuiz: não foi possível gravar a pontuação.", erro);
+    rankingStatus.textContent = "Não foi possível atualizar o ranking agora.";
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function mostrarRanking(itens) {
+  const linhas = Array.isArray(itens) ? itens.filter((item) => item && item.nome) : [];
+
+  if (linhas.length === 0) {
+    rankingStatus.textContent = "Nenhuma pontuação registrada ainda.";
+    return;
+  }
+
+  const alvo = normalizar(playerName);
+  rankingStatus.hidden = true;
+  rankingList.hidden = false;
+  rankingList.replaceChildren();
+
+  for (const item of linhas) {
+    const linha = document.createElement("li");
+    linha.className = "ranking-item";
+    if (normalizar(item.nome) === alvo) linha.classList.add("is-current");
+
+    const posicao = document.createElement("span");
+    posicao.className = "ranking-pos";
+    posicao.textContent = item.posicao ? `${item.posicao}º` : "–";
+
+    const nome = document.createElement("span");
+    nome.className = "ranking-name";
+    nome.textContent = item.nome;
+
+    const pontos = document.createElement("span");
+    pontos.className = "ranking-points";
+    pontos.textContent = `${item.total_pontos ?? 0} pts`;
+
+    linha.append(posicao, nome, pontos);
+    rankingList.append(linha);
+  }
 }
 
 async function startRound() {
@@ -369,6 +455,7 @@ playerForm.addEventListener("submit", (event) => {
   playerNameError.hidden = true;
   playerNameInput.removeAttribute("aria-invalid");
   playerNameInput.value = name;
+  playerName = name;
 
   // Este clique é o gesto que libera o áudio no navegador (iOS incluso).
   playStart();

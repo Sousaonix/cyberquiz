@@ -1,6 +1,6 @@
 # 🧠 CyberQuiz
 
-Quiz de **segurança cibernética** e **inteligência artificial**: o jogador digita o nome, responde 10 perguntas sorteadas de um banco de 100 e recebe o placar, o tempo e uma explicação com a fonte de cada resposta.
+Quiz de **segurança cibernética** e **inteligência artificial**: o jogador digita o nome, responde 10 perguntas sorteadas de um banco de 100 e recebe o placar, o tempo, uma explicação com a fonte de cada resposta e o **ranking** dos jogadores.
 
 Projeto integrado de **Desenvolvimento Frontend**, **Modelagem de Banco de Dados** e **Algoritmos e Pensamento Computacional** — apresentado na Mostra de Tecnologia.
 
@@ -79,7 +79,7 @@ npm run dev             # http://localhost:3000
 ```
 
 Rotas: `GET /` · `GET /health` · `GET /perguntas` · `GET /perguntas/:id` ·
-`GET /categorias` · `GET /ranking`
+`GET /categorias` · `GET /ranking` · `POST /respostas` (grava a rodada e devolve o ranking)
 
 Filtros: `/perguntas?categoria=Inteligência Artificial` · `/perguntas?limite=10`
 

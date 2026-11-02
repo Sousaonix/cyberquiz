@@ -36,7 +36,7 @@ function cabecalhosCors(corsOrigin, origem) {
 
   return {
     "Access-Control-Allow-Origin": permitir,
-    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Expose-Headers": "X-Total-Count",
     Vary: "Origin",
@@ -55,6 +55,35 @@ function enviarJson(res, status, corpo, extras = {}) {
 
 function statusDoErro(erro) {
   return Number.isInteger(erro?.status) ? erro.status : 500;
+}
+
+// Lê o corpo de um POST com limite de tamanho (evita payload gigante).
+function lerCorpo(req, limite = 64 * 1024) {
+  return new Promise((resolve, reject) => {
+    let total = 0;
+    const partes = [];
+
+    req.on("data", (parte) => {
+      total += parte.length;
+      if (total > limite) {
+        const erro = new Error("Corpo da requisição muito grande.");
+        erro.status = 413;
+        reject(erro);
+        req.destroy();
+        return;
+      }
+      partes.push(parte);
+    });
+
+    req.on("end", () => resolve(Buffer.concat(partes).toString("utf8")));
+    req.on("error", reject);
+  });
+}
+
+function erroDeEntrada(mensagem) {
+  const erro = new Error(mensagem);
+  erro.status = 400;
+  return erro;
 }
 
 // Diagnóstico de configuração para o /health: diz o TIPO e o TAMANHO da
@@ -79,6 +108,7 @@ function diagnosticoBanco() {
 export function createServer({
   loadPerguntas,
   loadRanking,
+  salvarRespostas,
   corsOrigin = process.env.CORS_ORIGIN || "*",
 } = {}) {
   if (typeof loadPerguntas !== "function") {
@@ -101,7 +131,9 @@ export function createServer({
           "GET /perguntas/:id",
           "GET /categorias",
           "GET /ranking",
+          "POST /respostas",
           "GET /health",
+          "GET /diagnostico",
         ],
       }),
     },
@@ -176,8 +208,50 @@ export function createServer({
       },
     },
     {
+      metodo: "POST",
+      padrao: /^\/respostas$/,
+      tratar: async ({ req }) => {
+        if (typeof salvarRespostas !== "function") {
+          const erro = new Error("Registro de respostas indisponível neste servidor.");
+          erro.status = 503;
+          throw erro;
+        }
+
+        let corpo;
+        try {
+          corpo = JSON.parse((await lerCorpo(req)) || "{}");
+        } catch {
+          throw erroDeEntrada("O corpo da requisição não é um JSON válido.");
+        }
+
+        const nome = String(corpo?.nome ?? "").trim();
+        if (!nome) throw erroDeEntrada("Informe o nome do jogador.");
+        if (nome.length > 120) throw erroDeEntrada("O nome do jogador passa de 120 caracteres.");
+
+        const recebidas = Array.isArray(corpo?.respostas) ? corpo.respostas : [];
+        if (recebidas.length === 0) throw erroDeEntrada("Envie ao menos uma resposta.");
+        if (recebidas.length > 50) throw erroDeEntrada("Máximo de 50 respostas por envio.");
+
+        const respostas = recebidas.map((item) => {
+          const idPergunta = Number(item?.id_pergunta);
+          const escolha = String(item?.escolha ?? "").trim().toUpperCase();
+
+          if (!Number.isInteger(idPergunta) || idPergunta <= 0) {
+            throw erroDeEntrada("Cada resposta precisa do id_pergunta numérico.");
+          }
+          if (!/^[A-Z]{1,20}$/.test(escolha)) {
+            throw erroDeEntrada("A escolha precisa ser um identificador de alternativa, como A, B, C ou D.");
+          }
+
+          return { id_pergunta: idPergunta, escolha };
+        });
+
+        return { corpo: await salvarRespostas({ nome, respostas }) };
+      },
+    },
+    {
       metodo: "GET",
-      padrao: /^\/ranking$/,
+      padrao: /^\/ranking$/, 
       tratar: async ({ url }) => {
         const limite = Number(url.searchParams.get("limite"));
         const quantos = Number.isInteger(limite) && limite > 0 ? Math.min(limite, 100) : 10;

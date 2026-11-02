@@ -15,9 +15,9 @@ Marco M2. O desenho lógico (tabelas, colunas, PK e FK) é entregue em `03-logic
 | JOGADOR — PONTUACAO | 1:N | FK no lado N | `pontuacao.id_jogador` → `jogador.id_jogador` |
 | PERGUNTA — PONTUACAO | 1:N | FK no lado N | `pontuacao.id_pergunta` → `pergunta.id_pergunta` |
 | ALTERNATIVA — PONTUACAO (escolhe) | 1:N | FK no lado N | `pontuacao.id_alternativa` → `alternativa.id_alternativa` |
-| Um jogador responde cada pergunta uma única vez | — | restrição | `uq_pontuacao_jogador_pergunta (id_jogador, id_pergunta)` |
+| O jogador pode jogar várias rodadas | — | sem restrição de unicidade | cada rodada grava as suas próprias linhas em `pontuacao` |
 
-O relacionamento **escolhe** (ALTERNATIVA — PONTUACAO) é o que registra *qual* alternativa o jogador marcou; por isso a pontuação aponta para a alternativa, e não apenas para a pergunta. O par `(id_jogador, id_pergunta)` é único porque um jogador não responde a mesma pergunta duas vezes.
+O relacionamento **escolhe** (ALTERNATIVA — PONTUACAO) é o que registra *qual* alternativa o jogador marcou; por isso a pontuação aponta para a alternativa, e não apenas para a pergunta. Não existe `UNIQUE (id_jogador, id_pergunta)` de propósito: quem joga de novo acumula pontos no ranking.
 
 **Ranking não é tabela.** O DER não traz entidade de ranking: ele é calculado pela soma de `pontuacao.valor_pontos` por jogador, entregue pela view `vw_ranking` (`08-views-api.sql`).
 
@@ -37,10 +37,9 @@ O relacionamento **escolhe** (ALTERNATIVA — PONTUACAO) é o que registra *qual
 | DF6 | `id_alternativa → id_pergunta, identificador, texto, correta` | RD05, RD07 |
 | DF7 | `(id_pergunta, identificador) → id_alternativa` | RD05 |
 | DF8 | `codigo → id_pergunta` (chave candidata) | RD08 |
-| DF9 | `id_jogador → nome, email, senha_hash` | cadastro/login |
-| DF10 | `email → id_jogador` (chave candidata) | RNF02 |
+| DF9 | `id_jogador → nome` | RD12 |
+| DF10 | `nome → id_jogador` (chave candidata) | RD12, RNF02 |
 | DF11 | `id_pontuacao → id_jogador, id_pergunta, id_alternativa, valor_pontos, data_resposta` | RA04, RD11 |
-| DF12 | `(id_jogador, id_pergunta) → id_pontuacao` (chave candidata) | uma resposta por jogador |
 
 | Forma | Por que o esquema atende | Tabela em que isso aparece |
 | --- | --- | --- |
@@ -109,9 +108,7 @@ O relacionamento **escolhe** (ALTERNATIVA — PONTUACAO) é o que registra *qual
 | Coluna | Tipo e tamanho | Nulo | Restrição | Descrição |
 | --- | --- | --- | --- | --- |
 | id_jogador | INTEGER | NOT NULL | PK | Identificador do jogador |
-| nome | VARCHAR(120) | NOT NULL | — | Nome exibido no jogo |
-| email | VARCHAR(254) | NOT NULL | UNIQUE (`uq_jogador_email`) | E-mail usado no login |
-| senha_hash | TEXT | NOT NULL | — | Hash da senha; a senha em texto puro nunca é gravada |
+| nome | VARCHAR(120) | NOT NULL | UNIQUE (`uq_jogador_nome`) | Nome digitado no início da rodada; único para o ranking somar as rodadas da mesma pessoa |
 
 ### Tabela: pontuacao
 
@@ -124,7 +121,7 @@ O relacionamento **escolhe** (ALTERNATIVA — PONTUACAO) é o que registra *qual
 | valor_pontos | INTEGER | NOT NULL | DEFAULT 0; CHECK >= 0; calculado pelo gatilho `trg_pontuacao_pontua` | 10 quando a alternativa escolhida é a correta, 0 quando é errada |
 | data_resposta | TIMESTAMPTZ | NOT NULL | DEFAULT `now()` | Momento em que a resposta foi registrada |
 
-Chave candidata: `UNIQUE (id_jogador, id_pergunta)` (`uq_pontuacao_jogador_pergunta`).
+Não há chave candidata aqui: o jogador pode responder a mesma pergunta em rodadas diferentes.
 
 ### Regras que não cabem em uma coluna
 

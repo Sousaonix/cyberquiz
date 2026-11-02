@@ -53,7 +53,7 @@
 --                 + codigo/titulo/explicacao .. atributos extra (RD08/RD09)
 --    ALTERNATIVA (id_alternativa, identificador, texto, correta)
 --                                              -> alternativa
---    JOGADOR     (id_jogador, nome, email, senha_hash) -> jogador
+--    JOGADOR     (id_jogador, nome)               -> jogador
 --    PONTUACAO   (id_pontuacao, valor_pontos, data_resposta)
 --                                              -> pontuacao
 --
@@ -162,15 +162,17 @@ CREATE UNIQUE INDEX ux_alternativa_uma_correta
     ON alternativa (id_pergunta) WHERE correta;
 
 -- ---------------------------------------------------------------------
--- 4) Jogador (cadastro e login)
+-- 4) Jogador (só o nome — sem login, sem e-mail)
+--
+--    Decisão de escopo: o quiz não tem cadastro nem senha. O jogador digita
+--    o nome e começa a jogar; o nome é único para o ranking conseguir
+--    somar as rodadas da mesma pessoa.
 -- ---------------------------------------------------------------------
 
 CREATE TABLE jogador (
     id_jogador INTEGER      GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nome       VARCHAR(120) NOT NULL,
-    email      VARCHAR(254) NOT NULL,
-    senha_hash TEXT         NOT NULL,
-    CONSTRAINT uq_jogador_email UNIQUE (email)
+    CONSTRAINT uq_jogador_nome UNIQUE (nome)
 );
 
 -- ---------------------------------------------------------------------
@@ -183,8 +185,8 @@ CREATE TABLE jogador (
 --    alternativa ele escolheu, quantos pontos ganhou e quando respondeu.
 --
 --    Regras do MER implementadas aqui:
---      * um jogador responde cada pergunta uma única vez
---        (uq_pontuacao_jogador_pergunta);
+--      * o jogador pode responder de novo em outra rodada: cada rodada
+--        grava as suas próprias linhas (não há UNIQUE jogador+pergunta);
 --      * valor_pontos depende da alternativa escolhida ser a correta
 --        (calculado pelo gatilho fn_pontuar_resposta);
 --      * ranking NÃO é tabela: é a soma de valor_pontos por jogador,
@@ -207,7 +209,6 @@ CREATE TABLE pontuacao (
         ON DELETE CASCADE,
     CONSTRAINT fk_pontuacao_alternativa
         FOREIGN KEY (id_alternativa) REFERENCES alternativa (id_alternativa),
-    CONSTRAINT uq_pontuacao_jogador_pergunta UNIQUE (id_jogador, id_pergunta),
     CONSTRAINT ck_pontuacao_valor CHECK (valor_pontos >= 0)
 );
 
@@ -1126,16 +1127,21 @@ FROM vw_pergunta_completa v;
 -- ---------------------------------------------------------------------
 CREATE OR REPLACE VIEW vw_ranking AS
 SELECT
+    ROW_NUMBER() OVER (
+        ORDER BY SUM(pt.valor_pontos) DESC,
+                 COUNT(*) FILTER (WHERE a.correta) DESC,
+                 j.nome
+    )                                          AS posicao,
     j.id_jogador,
     j.nome,
-    COALESCE(SUM(pt.valor_pontos), 0)         AS total_pontos,
+    SUM(pt.valor_pontos)                       AS total_pontos,
     COUNT(pt.id_pontuacao)                     AS respostas,
     COUNT(*) FILTER (WHERE a.correta)          AS acertos,
     COUNT(*) FILTER (WHERE a.correta IS FALSE) AS erros,
     MAX(pt.data_resposta)                      AS ultima_resposta
 FROM jogador j
-LEFT JOIN pontuacao   pt ON pt.id_jogador    = j.id_jogador
-LEFT JOIN alternativa a  ON a.id_alternativa = pt.id_alternativa
+JOIN pontuacao   pt ON pt.id_jogador    = j.id_jogador
+JOIN alternativa a  ON a.id_alternativa = pt.id_alternativa
 GROUP BY j.id_jogador, j.nome
 ORDER BY total_pontos DESC, acertos DESC, j.nome;
 

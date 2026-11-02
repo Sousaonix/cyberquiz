@@ -1,5 +1,7 @@
 # CyberQuiz — Documentação do Banco de Dados
 
+> ⚠️ **Versão histórica (primeira entrega).** O modelo evoluiu depois deste texto: o jogador passou a ser identificado **só pelo nome** (sem e-mail e sem senha), o banco passou a **gravar a pontuação** de cada resposta para montar o ranking, e o cadastro de perguntas é feito pela equipe por script — **não existe perfil de usuário que cadastre perguntas**. A versão válida está em [`../01-contexto.md`](../01-contexto.md), [`../02-modelo-conceitual.md`](../02-modelo-conceitual.md) e [`../03-logico.md`](../03-logico.md).
+
 ## 1. Introdução e contexto
 
 O **CyberQuiz** é um sistema de perguntas e respostas voltado para aprendizado e entretenimento. O banco de dados tem como objetivo armazenar e organizar perguntas, suas categorias, fontes, publicadores, idiomas e alternativas de respostas, permitindo que os jogadores escolham um tema e respondam às perguntas disponíveis.

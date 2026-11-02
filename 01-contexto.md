@@ -11,19 +11,21 @@ O CyberQuiz é um quiz de perguntas de múltipla escolha sobre segurança da inf
 | O banco faz | O banco não faz |
 | --- | --- |
 | Cadastra perguntas com enunciado, categoria, fonte, publicador e idioma | Não monta tela nem faz autenticação de sessão |
-| Guarda as alternativas de cada pergunta, em quantidade variável | Não guarda pontuação, ranking nem histórico de respostas |
-| Guarda o cadastro do jogador (nome, e-mail e hash da senha) | Não faz recuperação de senha nem envia e-mail |
-| Responde às consultas do aplicativo (RA01–RA07) | Não versiona o texto das perguntas nem guarda auditoria |
+| Guarda as alternativas de cada pergunta, em quantidade variável | Não guarda imagens nem mídia das perguntas |
+| Guarda o nome do jogador e a pontuação de cada resposta | Não tem login, senha nem recuperação de conta |
+| Responde às consultas do aplicativo (RA01–RA08), inclusive o ranking | Não versiona o texto das perguntas nem guarda auditoria |
 | Impede duplicidade e campo obrigatório vazio (PK, FK, UNIQUE, NOT NULL) | Não conversa com outras bases nem importa dados externos |
 
-> **Nota sobre `jogador`.** É a única tabela fora do núcleo de perguntas. Ela existe porque o CyberQuiz tem login próprio; a orientação manda não criá-la quando nenhum requisito pede cadastro, e aqui o requisito existe. A decisão está registrada em `03-logico.md`.
+> **Nota sobre `jogador`.** O CyberQuiz **não tem login**: o jogador digita o nome e já começa a jogar. A tabela guarda só o nome — sem e-mail e sem senha — e existe para amarrar a pontuação de cada resposta ao ranking do fim da rodada. O nome é único justamente para o ranking somar todas as rodadas da mesma pessoa. A decisão está registrada em `03-logico.md`.
+>
+> **Nota sobre o cadastro de perguntas.** O banco não é alimentado por uma tela nem por "qualquer usuário": a carga das perguntas é feita pela equipe, por script (`05-dml-consultas.sql` no ambiente da disciplina e `07-seed-questoes.sql` no Supabase). Não existe perfil de usuário que cadastre perguntas.
 
 ### Usuários
 
 | Usuário | O que faz |
 | --- | --- |
-| Jogador | Cadastra-se, entra na conta, escolhe uma categoria, lê a pergunta, marca uma alternativa e vê a confirmação, a explicação e a fonte. |
-| Quem cadastra perguntas | Inclui pergunta, categoria, fonte, publicador e idioma. No estado atual esse cadastro é feito pelo script de carga (`05-dml-consultas.sql`); a ausência de tela não apaga o fato de que os dados entram no banco. |
+| Jogador | Digita o nome, lê a pergunta, marca uma alternativa e vê a confirmação, a explicação e a fonte. No fim da rodada vê o seu desempenho e o ranking. |
+| Equipe do projeto | Carrega as perguntas, categorias, fontes, publicadores e idiomas por script (`05-dml-consultas.sql` e `07-seed-questoes.sql`). **Não é um usuário do sistema**: não há tela nem permissão de cadastro. |
 
 ## 2. Minimundo
 
@@ -48,6 +50,7 @@ Toda pergunta pertence a exatamente uma categoria, e não quero duas categorias 
 | RD09 | Título, enunciado e explicação são obrigatórios. Enunciado e explicação podem ser longos. | regra de negócio |
 | RD10 | Nome de categoria, nome de publicador e dados da fonte não se repetem em cada pergunta. | regra de negócio |
 | RD11 | As perguntas da carga entram sem perda de campo. | funcional |
+| RD12 | O jogador é identificado apenas pelo nome, que é único; não há e-mail nem senha. | regra de negócio |
 
 ### Consultas que o banco precisa responder
 
@@ -60,12 +63,13 @@ Toda pergunta pertence a exatamente uma categoria, e não quero duas categorias 
 | RA05 | Exibir a explicação e a fonte completa: título, publicador, URL e idioma. | funcional |
 | RA06 | Listar os publicadores mais citados, com o número de perguntas. | funcional |
 | RA07 | Listar as fontes citadas por mais de uma pergunta. | funcional |
+| RA08 | Listar o ranking: soma de pontos por jogador, da maior para a menor. | funcional |
 
 ### Requisitos não funcionais
 
 | Código | Texto do requisito | Tipo |
 | --- | --- | --- |
 | RNF01 | O SGBD é PostgreSQL. | não funcional |
-| RNF02 | Integridade: nome de categoria único, URL única, textos da pergunta obrigatórios, toda chave estrangeira do núcleo preenchida. | não funcional |
+| RNF02 | Integridade: nome de categoria único, URL única, nome de jogador único, textos da pergunta obrigatórios, toda chave estrangeira do núcleo preenchida. | não funcional |
 
-> **Rastreabilidade.** RD01–RD11 aparecem em `02-modelo-conceitual.md` (entidades e relacionamentos) e `03-logico.md` (mapeamento, dependências e dicionário); RA01–RA07 são respondidos em `05-dml-consultas.sql`, com o resultado de cada consulta; RNF01–RNF02 são verificados em `06-testes.sql`.
+> **Rastreabilidade.** RD01–RD12 aparecem em `02-modelo-conceitual.md` (entidades e relacionamentos) e `03-logico.md` (mapeamento, dependências e dicionário); RA01–RA07 são respondidos em `05-dml-consultas.sql`, com o resultado de cada consulta; RA08 é a view `vw_ranking` (`08-views-api.sql`); RNF01–RNF02 são verificados em `06-testes.sql`.

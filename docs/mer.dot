@@ -1,0 +1,83 @@
+graph MER {
+  charset="UTF-8";
+  graph [rankdir=LR, bgcolor="#ffffff", nodesep=0.28, ranksep=0.62, splines=true, pad=0.45, fontname="Helvetica",
+         label=<<B>CyberQuiz — Modelo Entidade-Relacionamento (Chen)</B><BR/><FONT POINT-SIZE="11">Atributo sublinhado = identificador · elipse tracejada = atributo opcional · jogador sem login (apenas nome)</FONT>>,
+         labelloc=t, fontsize=22, fontcolor="#16233a"];
+  node  [fontname="Helvetica", fontsize=13];
+  edge  [color="#6b7f9e", penwidth=1.4];
+
+  node [shape=box, style="rounded,filled", fillcolor="#dbe9ff", color="#2f5597", penwidth=2, fontsize=16, fontcolor="#16305e", height=0.6, width=1.8];
+  CATEGORIA      [label="CATEGORIA"];
+  PUBLICADOR     [label="PUBLICADOR"];
+  IDIOMA         [label="IDIOMA"];
+  FONTE          [label="FONTE"];
+  PERGUNTA       [label="PERGUNTA"];
+  ALTERNATIVA    [label="ALTERNATIVA"];
+  JOGADOR        [label="JOGADOR"];
+  PONTUACAO      [label="PONTUAÇÃO"];
+
+  node [shape=diamond, style="filled", fillcolor="#fff1c9", color="#c9a227", fontsize=12, fontcolor="#6b5312", height=0.85, width=1.35, penwidth=1.6];
+  classifica [label="classifica"];
+  ampara     [label="ampara"];
+  publica    [label="publica"];
+  identifica [label="identifica"];
+  possui     [label="possui"];
+  gera       [label="gera"];
+  escolhe    [label="escolhe"];
+  obtem      [label="obtém"];
+
+  node [shape=ellipse, style="filled", fillcolor="#f7faff", color="#8fa8cc", fontsize=12, fontcolor="#24405f", height=0.42, width=1.25, penwidth=1.2];
+  cat_id   [label="id_categoria", fontstyle=underline];
+  cat_nome [label="nome"];
+  pub_id   [label="id_publicador", fontstyle=underline];
+  pub_nome [label="nome"];
+  idi_id   [label="id_idioma", fontstyle=underline];
+  idi_nome [label="nome"];
+  idi_cod  [label="codigo"];
+  fon_id   [label="id_fonte", fontstyle=underline];
+  fon_desc [label="descricao"];
+  fon_url  [label="url", style="dashed,filled"];
+  per_id   [label="id_pergunta", fontstyle=underline];
+  per_cod  [label="codigo"];
+  per_tit  [label="titulo"];
+  per_enu  [label="enunciado"];
+  per_exp  [label="explicacao"];
+  alt_id   [label="id_alternativa", fontstyle=underline];
+  alt_ide  [label="identificador"];
+  alt_txt  [label="texto"];
+  alt_cor  [label="correta"];
+  jog_id   [label="id_jogador", fontstyle=underline];
+  jog_nome [label="nome"];
+  pon_id   [label="id_pontuacao", fontstyle=underline];
+  pon_val  [label="valor_pontos"];
+  pon_data [label="data_resposta"];
+
+  edge [arrowhead=none];
+  CATEGORIA -- cat_id;   CATEGORIA -- cat_nome;
+  PUBLICADOR -- pub_id;  PUBLICADOR -- pub_nome;
+  IDIOMA -- idi_id;      IDIOMA -- idi_nome;     IDIOMA -- idi_cod;
+  FONTE -- fon_id;       FONTE -- fon_desc;      FONTE -- fon_url;
+  PERGUNTA -- per_id;    PERGUNTA -- per_cod;    PERGUNTA -- per_tit;
+  PERGUNTA -- per_enu;   PERGUNTA -- per_exp;
+  ALTERNATIVA -- alt_id; ALTERNATIVA -- alt_ide; ALTERNATIVA -- alt_txt; ALTERNATIVA -- alt_cor;
+  JOGADOR -- jog_id;     JOGADOR -- jog_nome;
+  PONTUACAO -- pon_id;   PONTUACAO -- pon_val;   PONTUACAO -- pon_data;
+
+  edge [taillabel="1", headlabel="N", labeldistance=1.6, labelfontsize=12, fontcolor="#20334f"];
+  CATEGORIA  -- classifica;
+  classifica -- PERGUNTA;
+  FONTE      -- ampara;
+  ampara     -- PERGUNTA;
+  PUBLICADOR -- publica;
+  publica    -- FONTE;
+  IDIOMA     -- identifica;
+  identifica -- FONTE;
+  PERGUNTA   -- possui;
+  possui     -- ALTERNATIVA;
+  PERGUNTA   -- gera;
+  gera       -- PONTUACAO;
+  JOGADOR    -- obtem;
+  obtem      -- PONTUACAO;
+  ALTERNATIVA -- escolhe;
+  escolhe    -- PONTUACAO;
+}

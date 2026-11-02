@@ -166,6 +166,87 @@ test("método errado devolve 405 e rota inexistente devolve 404", async (t) => {
   assert.equal(inexistente.status, 404);
 });
 
+test("POST /respostas grava a rodada e devolve o ranking", async (t) => {
+  let recebido = null;
+  const api = await iniciar({
+    salvarRespostas: async ({ nome, respostas }) => {
+      recebido = { nome, respostas };
+      return {
+        jogador: { id: 1, nome },
+        total_pontos: 30,
+        acertos: 3,
+        erros: 7,
+        respostas: 10,
+        ranking: [{ posicao: 1, nome, total_pontos: 30 }],
+      };
+    },
+  });
+  t.after(() => api.parar());
+
+  const resposta = await fetch(`${api.base}/respostas`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      nome: "  Nayra ",
+      respostas: [
+        { id_pergunta: 1, escolha: "b" },
+        { id_pergunta: 2, escolha: "A" },
+      ],
+    }),
+  });
+
+  assert.equal(resposta.status, 200);
+  const corpo = await resposta.json();
+  assert.equal(corpo.total_pontos, 30);
+  assert.equal(corpo.ranking[0].nome, "Nayra");
+
+  // Normalizações feitas pelo servidor antes de tocar no banco.
+  assert.equal(recebido.nome, "Nayra");
+  assert.deepEqual(recebido.respostas, [
+    { id_pergunta: 1, escolha: "B" },
+    { id_pergunta: 2, escolha: "A" },
+  ]);
+});
+
+test("POST /respostas recusa corpo inválido", async (t) => {
+  const api = await iniciar({ salvarRespostas: async () => ({}) });
+  t.after(() => api.parar());
+
+  const semNome = await fetch(`${api.base}/respostas`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nome: "  ", respostas: [{ id_pergunta: 1, escolha: "A" }] }),
+  });
+  assert.equal(semNome.status, 400);
+
+  const semRespostas = await fetch(`${api.base}/respostas`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nome: "Nayra", respostas: [] }),
+  });
+  assert.equal(semRespostas.status, 400);
+
+  const jsonQuebrado = await fetch(`${api.base}/respostas`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: "{nao-json",
+  });
+  assert.equal(jsonQuebrado.status, 400);
+});
+
+test("POST /respostas responde 503 quando o servidor não grava", async (t) => {
+  const api = await iniciar();
+  t.after(() => api.parar());
+
+  const resposta = await fetch(`${api.base}/respostas`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nome: "Nayra", respostas: [{ id_pergunta: 1, escolha: "A" }] }),
+  });
+
+  assert.equal(resposta.status, 503);
+});
+
 test("erro do banco chega ao cliente com o status certo", async (t) => {
   const falha = new Error("Banco não configurado: defina SUPABASE_URL e SUPABASE_KEY no .env.");
   falha.status = 503;

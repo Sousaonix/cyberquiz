@@ -70,16 +70,21 @@ FROM vw_pergunta_completa v;
 -- ---------------------------------------------------------------------
 CREATE OR REPLACE VIEW vw_ranking AS
 SELECT
+    ROW_NUMBER() OVER (
+        ORDER BY SUM(pt.valor_pontos) DESC,
+                 COUNT(*) FILTER (WHERE a.correta) DESC,
+                 j.nome
+    )                                          AS posicao,
     j.id_jogador,
     j.nome,
-    COALESCE(SUM(pt.valor_pontos), 0)         AS total_pontos,
+    SUM(pt.valor_pontos)                       AS total_pontos,
     COUNT(pt.id_pontuacao)                     AS respostas,
     COUNT(*) FILTER (WHERE a.correta)          AS acertos,
     COUNT(*) FILTER (WHERE a.correta IS FALSE) AS erros,
     MAX(pt.data_resposta)                      AS ultima_resposta
 FROM jogador j
-LEFT JOIN pontuacao   pt ON pt.id_jogador    = j.id_jogador
-LEFT JOIN alternativa a  ON a.id_alternativa = pt.id_alternativa
+JOIN pontuacao   pt ON pt.id_jogador    = j.id_jogador
+JOIN alternativa a  ON a.id_alternativa = pt.id_alternativa
 GROUP BY j.id_jogador, j.nome
 ORDER BY total_pontos DESC, acertos DESC, j.nome;
 
