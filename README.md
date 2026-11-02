@@ -4,6 +4,12 @@ Quiz de **segurança cibernética** e **inteligência artificial**: o jogador di
 
 Projeto integrado de **Desenvolvimento Frontend**, **Modelagem de Banco de Dados** e **Algoritmos e Pensamento Computacional** — apresentado na Mostra de Tecnologia.
 
+<p align="center">
+  <a href="https://sousaonix.github.io/cyberquiz/">
+    <img src="docs/img/tela-pergunta.webp" alt="Tela do CyberQuiz: pergunta de segurança cibernética, com quatro alternativas e o mascote escudo" width="820" />
+  </a>
+</p>
+
 🔗 **Jogue online:** <https://sousaonix.github.io/cyberquiz/>
 
 ---
