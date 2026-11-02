@@ -34,20 +34,36 @@ o jogo nunca fica na mão na frente do público.
 
 ## Estrutura do repositório
 
+O site fica na **raiz** porque é de lá que o GitHub Pages publica. Todo o resto está agrupado por assunto.
+
+```
+cyberquiz/
+├── index.html          ← o jogo (publicado pelo Pages)
+├── css/ js/ assets/
+├── questoes.json       ← banco offline de reserva
+├── api/                ← backend Node.js
+├── supabase/           ← SQL pronto para instalar o banco
+├── docs/               ← documentação e MER
+├── scripts/            ← gerador do SQL de instalação
+├── tests/              ← testes da lógica
+└── render.yaml         ← deploy da API
+```
+
 | Caminho | O que é |
 | --- | --- |
-| `index.html` | Telas de entrada, pergunta e resultado |
+| `index.html` | Telas de entrada, pergunta, resultado e ranking |
 | `css/styles.css` | Visual neon, um tema de cor por pergunta |
-| `js/quiz.js` | Interação, nome do jogador, cronômetro, carregamento da API |
+| `js/quiz.js` | Interação, nome do jogador, cronômetro, API e ranking |
 | `js/session.js` | Sorteio da rodada, placar e formatação do tempo |
 | `js/sound.js` | Efeitos sonoros sintetizados na hora (Web Audio API) |
 | `js/config.js` | Endereço da API |
 | `questoes.json` | Banco local usado no modo offline |
-| `assets/` | Logo, mascotes, fundos (WebP) e as ilustrações por categoria (SVG) |
-| `api/` | Backend Node.js (Express? não — `node:http` puro) |
+| `assets/` | Logo, mascotes, fundos (WebP) e ilustrações por categoria (SVG) |
+| `api/` | Backend Node.js (`node:http` puro, sem framework) |
+| `supabase/` | `setup.sql` (instala tudo) e `reset.sql` (limpa antes de reinstalar) |
+| `docs/` | Documentação do banco (`01`–`08`), MER em PNG/SVG e dicionário |
+| `scripts/` | `build-sql.mjs`, que gera o `supabase/setup.sql` |
 | `tests/` | Testes da lógica da rodada |
-| `01`–`08` (raiz) | Entregas da disciplina de Banco de Dados: contexto, modelos, DDL, DML, testes, carga real e views |
-| `docs/banco-de-dados.md` | Documentação do modelo de dados |
 | `render.yaml` | Blueprint de deploy da API no Render |
 | `.github/workflows/keepalive.yml` | Ping periódico para a API não dormir |
 
@@ -95,23 +111,28 @@ npm run test:api        # rotas da API, com banco falso (api/test/)
 ## Banco de dados
 
 O esquema segue o **MER (notação Chen)** e o contrato de nomes acordado com a
-disciplina de Web. No **SQL Editor do Supabase**, rode nesta ordem:
+disciplina de Web. O diagrama está em [`docs/CyberQuiz_MER_Chen.png`](docs/CyberQuiz_MER_Chen.png)
+e a documentação completa em [`docs/banco-de-dados.md`](docs/banco-de-dados.md).
 
-| Ordem | Arquivo | O que faz |
-| --- | --- | --- |
-| 1 | `04-ddl.sql` | Cria tabelas, chaves, índices e gatilhos (inclui `pontuacao`) |
-| 2 | `07-seed-questoes.sql` | Carrega as 100 perguntas, 400 alternativas, 88 fontes e 43 publicadores |
-| 3 | `08-views-api.sql` | Cria `vw_quiz_json` (o JSON da API) e `vw_ranking` |
+No **SQL Editor do Supabase**, rode **um único arquivo**:
 
-> `05-dml-consultas.sql` e `06-testes.sql` são a **massa de teste da disciplina
-> de Banco de Dados**. Não rode no Supabase: eles acrescentariam perguntas de
-> exemplo no meio das perguntas reais.
+| Arquivo | O que faz |
+| --- | --- |
+| [`supabase/setup.sql`](supabase/setup.sql) | Cria o esquema, carrega as 100 perguntas e cria as views da API |
+| [`supabase/reset.sql`](supabase/reset.sql) | Só quando precisar reinstalar: apaga os objetos do CyberQuiz |
+
+Se preferir rodar por partes, os arquivos originais estão em `docs/`
+(`04-ddl.sql`, `07-seed-questoes.sql`, `08-views-api.sql`), nessa ordem.
+
+> `docs/05-dml-consultas.sql` e `docs/06-testes.sql` são a **massa de teste da
+> disciplina de Banco de Dados**. Não rode no Supabase: eles acrescentariam
+> perguntas de exemplo no meio das perguntas reais.
 
 ---
 
 ## Publicando (passo a passo)
 
-1. **Supabase** — crie o projeto, rode os três arquivos SQL acima e copie
+1. **Supabase** — crie o projeto, rode o `supabase/setup.sql` e copie
    `Project URL` + `service_role key` (Settings → API).
 2. **Render** — *New +* → *Blueprint* → escolha este repositório. O
    `render.yaml` cria o serviço `cyberquiz-api` sozinho; depois preencha

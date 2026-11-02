@@ -6,13 +6,14 @@
 --    2. Cole este arquivo inteiro e clique em Run (Ctrl+Enter)
 --    3. No fim aparece a conferência: 100 perguntas / 400 alternativas
 --
---  Este arquivo é GERADO a partir de 04-ddl.sql + 07-seed-questoes.sql +
---  08-views-api.sql. Se mudar um deles, gere este de novo:
+--  Este arquivo é GERADO a partir de docs/04-ddl.sql,
+--  docs/07-seed-questoes.sql e docs/08-views-api.sql.
+--  Se mudar um deles, gere este de novo:
 --      npm run build:sql
 --  Não edite à mão.
 -- =====================================================================
 
--- ===================== 04-ddl.sql =====================
+-- ===================== docs/04-ddl.sql =====================
 -- =====================================================================
 --  CyberQuiz — Passo 7: modelo físico (DDL)
 --  Equipe        : <preencher>
@@ -330,7 +331,7 @@ INSERT INTO idioma (nome, codigo) VALUES
 COMMIT;
 
 
--- ===================== 07-seed-questoes.sql =====================
+-- ===================== docs/07-seed-questoes.sql =====================
 -- =====================================================================
 --  CyberQuiz — Passo 10: carga das perguntas reais (Supabase / PostgreSQL)
 --  Rode DEPOIS do 04-ddl.sql:
@@ -1054,7 +1055,7 @@ SELECT (SELECT COUNT(*) FROM pergunta)    AS perguntas,
        (SELECT COUNT(*) FROM fonte)       AS fontes;
 
 
--- ===================== 08-views-api.sql =====================
+-- ===================== docs/08-views-api.sql =====================
 -- =====================================================================
 --  CyberQuiz — Passo 11: views consumidas pela API
 --  Rode depois de 04-ddl.sql e 07-seed-questoes.sql.

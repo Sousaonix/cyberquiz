@@ -11,7 +11,7 @@ O roteamento está em `app.js`, o acesso ao banco em `supabase.js` e o start em
 | Etapa | O que era | Onde ficou |
 | --- | --- | --- |
 | 1 | Servidor Node com rotas `GET` e dados mock | `app.js` — o roteamento não sabe de onde vêm os dados; recebe `loadPerguntas` por injeção |
-| 2 | Tabela criada no Supabase | `04-ddl.sql` + `07-seed-questoes.sql` |
+| 2 | Tabela criada no Supabase | `../supabase/setup.sql` (ou `docs/04-ddl.sql` + `docs/07-seed-questoes.sql`) |
 | 3 | Backend consultando o banco de verdade | `supabase.js` — consulta a view `vw_quiz_json` |
 | 4 | Backend publicado com URL pública | `render.yaml` + este README |
 
@@ -53,6 +53,8 @@ Sem `.env`, as rotas respondem `503` com uma mensagem explicando o que falta.
 | `GET /perguntas/:id` | Uma pergunta (404 se não existir) |
 | `GET /categorias` | Categorias com a contagem de perguntas |
 | `GET /ranking` | Top jogadores da view `vw_ranking` |
+| `POST /respostas` | Grava a rodada (`{ nome, respostas: [{ id_pergunta, escolha }] }`) e devolve o placar + ranking |
+| `GET /diagnostico` | Tipo e tamanho da chave configurada (nunca o conteúdo) |
 
 ## Deploy no Render
 
@@ -73,4 +75,4 @@ minutos para evitar isso durante a feira.
 | `503` em `/perguntas` | `.env` ausente ou variáveis não preenchidas no Render |
 | `502` em `/perguntas` | View não criada, ou `08-views-api.sql` não rodou |
 | Navegador bloqueia a chamada (erro de CORS) | Origem do site fora do `CORS_ORIGIN` |
-| `/ranking` vazio | Nenhuma pontuação gravada ainda — a tabela `pontuacao` existe, mas o quiz ainda não envia respostas |
+| `/ranking` vazio | Ninguém jogou ainda desde a última instalação do banco |

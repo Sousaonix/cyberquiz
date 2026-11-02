@@ -7,7 +7,7 @@
 
 O banco guarda as perguntas, suas categorias, as fontes que as amparam (com publicador e idioma), as alternativas de cada pergunta, o **nome do jogador** e a **pontuação de cada resposta**. É essa estrutura que permite montar a pergunta, corrigir a resposta, mostrar a procedência do conteúdo e fechar a rodada com o ranking.
 
-O detalhamento de contexto, minimundo e requisitos está em [`01-contexto.md`](../01-contexto.md).
+O detalhamento de contexto, minimundo e requisitos está em [`01-contexto.md`](01-contexto.md).
 
 ### 🎯 Escopo
 
@@ -35,11 +35,11 @@ O detalhamento de contexto, minimundo e requisitos está em [`01-contexto.md`](.
 - **RA08** — ranking: soma de pontos por jogador.
 - **RNF01/RNF02** — PostgreSQL e integridade (unicidade de categoria, URL, nome de jogador; obrigatoriedade dos textos).
 
-Os textos completos estão em [`01-contexto.md`](../01-contexto.md).
+Os textos completos estão em [`01-contexto.md`](01-contexto.md).
 
 ## 🗂️ 3. Modelo
 
-O desenho conceitual (Chen) está em [`../CyberQuiz_MER_Chen.png`](../CyberQuiz_MER_Chen.png), com versão vetorial em `../CyberQuiz_MER_Chen.svg`. O mapeamento lógico, a normalização e o dicionário de dados estão em [`../03-logico.md`](../03-logico.md).
+O desenho conceitual (Chen) está em [`CyberQuiz_MER_Chen.png`](CyberQuiz_MER_Chen.png), com versão vetorial em `CyberQuiz_MER_Chen.svg`. O mapeamento lógico, a normalização e o dicionário de dados estão em [`03-logico.md`](03-logico.md).
 
 | Entidade | Atributos principais |
 |---|---|
@@ -79,4 +79,7 @@ ALTERNATIVA (0,N) —escolhe———— (1,1) PONTUACAO
 | `06-testes.sql` | Testes das regras de negócio |
 | `07-seed-questoes.sql` | Carga real: 100 perguntas do jogo |
 | `08-views-api.sql` | Views que a API consome (`vw_quiz_json`, `vw_ranking`) |
-| `supabase-setup.sql` | Os três SQL de produção em um arquivo só |
+
+Para instalar no Supabase, use os arquivos prontos em [`../supabase/`](../supabase/): `setup.sql` (instala tudo) e `reset.sql` (limpa antes de reinstalar).
+
+Os diagramas estão em `CyberQuiz_MER_Chen.png` e `CyberQuiz_MER_Chen.svg`; o fonte do desenho é `mer.dot`.

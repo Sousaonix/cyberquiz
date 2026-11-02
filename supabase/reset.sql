@@ -1,14 +1,14 @@
 -- =====================================================================
 --  CyberQuiz — reset do banco (apaga APENAS os objetos do projeto)
 --
---  Use quando o supabase-setup.sql reclamar que algo "já existe",
+--  Use quando o setup.sql reclamar que algo "já existe",
 --  por exemplo: 42P07: relation "categoria" already exists.
 --
 --  O que ele NÃO toca: auth, storage, extensions e qualquer schema que
 --  não seja o public do CyberQuiz.
 --
 --  ATENÇÃO: apaga as perguntas e as pontuações gravadas. Depois de rodar
---  este arquivo, rode o supabase-setup.sql de novo.
+--  este arquivo, rode o setup.sql de novo.
 -- =====================================================================
 
 BEGIN;
