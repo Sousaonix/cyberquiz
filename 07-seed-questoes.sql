@@ -294,6 +294,9 @@ FROM (VALUES
 ) AS v(codigo, titulo, enunciado, explicacao, categoria, url)
 JOIN categoria c ON c.nome = v.categoria
 JOIN fonte     f ON f.url  = v.url
+-- ORDER BY fixa a ordem: q001 recebe id_pergunta 1, q002 recebe 2, etc.
+-- Sem isso o JOIN pode entregar as linhas embaralhadas.
+ORDER BY v.codigo
 ON CONFLICT (codigo) DO NOTHING;
 
 -- ---------------------------------------------------------------------
@@ -704,6 +707,7 @@ FROM (VALUES
     ('q100', 'D', 'Funcionam apenas desconectados', FALSE)
 ) AS v(codigo, identificador, texto, correta)
 JOIN pergunta q ON q.codigo = v.codigo
+ORDER BY v.codigo, v.identificador
 ON CONFLICT (id_pergunta, identificador) DO NOTHING;
 
 COMMIT;
