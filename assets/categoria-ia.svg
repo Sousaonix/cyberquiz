@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 460" width="1200" height="460" role="img" aria-labelledby="titulo-ia">
+  <title id="titulo-ia">Chip com rede neural de nós e conexões, representando inteligência artificial</title>
+
+  <defs>
+    <radialGradient id="fundo" cx="50%" cy="45%" r="78%">
+      <stop offset="0%" stop-color="#2a0a52"/>
+      <stop offset="55%" stop-color="#170733"/>
+      <stop offset="100%" stop-color="#0a041c"/>
+    </radialGradient>
+
+    <linearGradient id="neon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffc6fb"/>
+      <stop offset="45%" stop-color="#eb41e7"/>
+      <stop offset="100%" stop-color="#7a2bff"/>
+    </linearGradient>
+
+    <linearGradient id="vidro" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#34105c" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#12052b" stop-opacity="0.98"/>
+    </linearGradient>
+
+    <radialGradient id="nucleo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff9bf5" stop-opacity="0.75" />
+      <stop offset="60%" stop-color="#eb41e7" stop-opacity="0.22" />
+      <stop offset="100%" stop-color="#eb41e7" stop-opacity="0" />
+    </radialGradient>
+
+    <filter id="brilho" x="-70%" y="-70%" width="240%" height="240%">
+      <feGaussianBlur stdDeviation="9" result="desfoque" />
+      <feMerge>
+        <feMergeNode in="desfoque" />
+        <feMergeNode in="desfoque" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <filter id="brilho-fraco" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="d" />
+      <feMerge>
+        <feMergeNode in="d" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <pattern id="grade" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0v48" fill="none" stroke="#5a2a8a" stroke-width="1" opacity="0.45" />
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="460" fill="url(#fundo)" />
+  <rect width="1200" height="460" fill="url(#grade)" opacity="0.6" />
+
+  <!-- halo atrás do chip -->
+  <circle cx="600" cy="235" r="230" fill="url(#nucleo)" opacity="0.5" />
+  <g fill="none" stroke="#eb41e7" opacity="0.16">
+    <circle cx="600" cy="235" r="200" stroke-width="1.5" stroke-dasharray="10 18" />
+    <circle cx="600" cy="235" r="246" stroke-width="1.5" stroke-dasharray="2 16" />
+  </g>
+
+  <!-- pinos de processador (dão a leitura de "chip") -->
+  <g fill="#ff9bf5" opacity="0.85" filter="url(#brilho-fraco)">
+    <rect x="434" y="172" width="28" height="8" rx="3" />
+    <rect x="434" y="208" width="28" height="8" rx="3" />
+    <rect x="434" y="244" width="28" height="8" rx="3" />
+    <rect x="434" y="280" width="28" height="8" rx="3" />
+    <rect x="738" y="172" width="28" height="8" rx="3" />
+    <rect x="738" y="208" width="28" height="8" rx="3" />
+    <rect x="738" y="244" width="28" height="8" rx="3" />
+    <rect x="738" y="280" width="28" height="8" rx="3" />
+  </g>
+  <g fill="none" stroke="#eb41e7" stroke-width="2" opacity="0.45">
+    <path d="M434 176h-38M434 248h-58M766 176h38M766 248h58" />
+  </g>
+  <g fill="#ff9bf5" opacity="0.7">
+    <circle cx="392" cy="176" r="4" />
+    <circle cx="372" cy="248" r="4" />
+    <circle cx="808" cy="176" r="4" />
+    <circle cx="828" cy="248" r="4" />
+  </g>
+
+  <!-- chip hexagonal -->
+  <path
+    d="M600 76 L738 156 V314 L600 394 L462 314 V156 Z"
+    fill="url(#vidro)"
+    stroke="url(#neon)"
+    stroke-width="7"
+    filter="url(#brilho)"
+  />
+  <path
+    d="M600 102 L714 169 V301 L600 368 L486 301 V169 Z"
+    fill="none"
+    stroke="#ffc6fb"
+    stroke-width="2"
+    opacity="0.5"
+  />
+
+  <!-- rede neural -->
+  <g stroke="#ff9bf5" stroke-width="2" opacity="0.55" fill="none">
+    <path d="M600 130 545 160 515 215 545 275 600 330" />
+    <path d="M600 130 655 160 685 215 665 275 600 330" />
+    <path d="M545 160 575 205 605 270 600 330" />
+    <path d="M655 160 625 205 605 270" />
+    <path d="M575 205 625 205" />
+    <path d="M515 215 545 275" />
+    <path d="M685 215 665 275" />
+    <path d="M545 275 605 270 665 275" />
+  </g>
+
+  <g fill="#ffd9fb" filter="url(#brilho-fraco)">
+    <circle cx="600" cy="130" r="7" />
+    <circle cx="545" cy="160" r="6" />
+    <circle cx="655" cy="160" r="6" />
+    <circle cx="515" cy="215" r="6" />
+    <circle cx="575" cy="205" r="6" />
+    <circle cx="625" cy="205" r="6" />
+    <circle cx="685" cy="215" r="6" />
+    <circle cx="545" cy="275" r="6" />
+    <circle cx="605" cy="270" r="6" />
+    <circle cx="665" cy="275" r="6" />
+    <circle cx="600" cy="330" r="7" />
+  </g>
+
+  <!-- bits -->
+  <g fill="#ffc6fb" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="20" letter-spacing="6" opacity="0.28">
+    <text x="112" y="120">1010 1101</text>
+    <text x="928" y="372">0101 0010</text>
+    <text x="150" y="372">IA</text>
+    <text x="1000" y="120">MODEL</text>
+  </g>
+
+  <!-- cantos de HUD -->
+  <g fill="none" stroke="#ffc6fb" stroke-width="3" opacity="0.45">
+    <path d="M56 56h70M56 56v70" />
+    <path d="M1144 56h-70M1144 56v70" />
+    <path d="M56 404h70M56 404v-70" />
+    <path d="M1144 404h-70M1144 404v-70" />
+  </g>
+</svg>

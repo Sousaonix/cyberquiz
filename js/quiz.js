@@ -25,6 +25,24 @@ const screens = {
 
 const PLAYER_NAME_KEY = "cyberquiz.playerName";
 
+// Uma ilustração por categoria de pergunta. As chaves estão sem acento e
+// em minúsculas para casar com o que vier da API (ou do questoes.json).
+const ARTE_POR_CATEGORIA = {
+  "seguranca cibernetica": {
+    src: "assets/categoria-seguranca.svg",
+    alt: "Escudo digital com fechadura: pergunta de segurança cibernética",
+  },
+  "inteligencia artificial": {
+    src: "assets/categoria-ia.svg",
+    alt: "Chip com rede neural: pergunta de inteligência artificial",
+  },
+};
+
+const ARTE_PADRAO = {
+  src: "assets/mascot-question.webp",
+  alt: "Mascote robô do CyberQuiz",
+};
+
 const loadError = document.querySelector("#load-error");
 const playerForm = document.querySelector("#player-form");
 const playerNameInput = document.querySelector("#player-name");
@@ -32,6 +50,7 @@ const playerNameError = document.querySelector("#player-name-error");
 const questionProgress = document.querySelector("#question-progress");
 const questionTitle = document.querySelector("#question-title");
 const answerGrid = document.querySelector("#answer-grid");
+const questionImage = document.querySelector("#question-image");
 const feedback = document.querySelector("#feedback");
 const feedbackVerdict = document.querySelector("#feedback-verdict");
 const feedbackExplanation = document.querySelector("#feedback-explanation");
@@ -171,9 +190,25 @@ function ensureBank() {
   return bankPromise;
 }
 
+function chaveCategoria(valor) {
+  return String(valor ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function arteDaCategoria(categoria) {
+  return ARTE_POR_CATEGORIA[chaveCategoria(categoria)] ?? ARTE_PADRAO;
+}
+
 function renderQuestion() {
   const question = round[index];
   screens.quiz.className = `quiz-template ${THEME_CLASS[question.theme]}`;
+
+  const arte = arteDaCategoria(question.categoria);
+  questionImage.src = arte.src;
+  questionImage.alt = arte.alt;
   questionProgress.textContent = `Pergunta ${index + 1} de ${round.length} · ${question.categoria}`;
   questionTitle.textContent = question.pergunta;
   feedback.hidden = true;
@@ -349,6 +384,13 @@ playerForm.addEventListener("submit", (event) => {
 
   startRound();
 });
+
+// Pré-carrega as artes das categorias: a troca entre perguntas de temas
+// diferentes acontece sem piscar.
+for (const arte of Object.values(ARTE_POR_CATEGORIA)) {
+  const preload = new Image();
+  preload.src = arte.src;
+}
 
 restorePlayerName();
 lerPreferenciaDeSom();

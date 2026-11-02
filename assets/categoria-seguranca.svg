@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 460" width="1200" height="460" role="img" aria-labelledby="titulo-seguranca">
+  <title id="titulo-seguranca">Escudo digital com fechadura, representando segurança cibernética</title>
+
+  <defs>
+    <radialGradient id="fundo" cx="50%" cy="45%" r="78%">
+      <stop offset="0%" stop-color="#0a2b52"/>
+      <stop offset="55%" stop-color="#061532"/>
+      <stop offset="100%" stop-color="#04091c"/>
+    </radialGradient>
+
+    <linearGradient id="neon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#b6f9ff"/>
+      <stop offset="45%" stop-color="#00d0ff"/>
+      <stop offset="100%" stop-color="#0066ff"/>
+    </linearGradient>
+
+    <linearGradient id="vidro" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0b3557" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#04122a" stop-opacity="0.98"/>
+    </linearGradient>
+
+    <filter id="brilho" x="-70%" y="-70%" width="240%" height="240%">
+      <feGaussianBlur stdDeviation="9" result="desfoque" />
+      <feMerge>
+        <feMergeNode in="desfoque" />
+        <feMergeNode in="desfoque" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <filter id="brilho-fraco" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="d" />
+      <feMerge>
+        <feMergeNode in="d" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <pattern id="grade" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0v48" fill="none" stroke="#0d4a7a" stroke-width="1" opacity="0.45" />
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="460" fill="url(#fundo)" />
+  <rect width="1200" height="460" fill="url(#grade)" opacity="0.6" />
+
+  <!-- anéis de radar -->
+  <g fill="none" stroke="#00d0ff" opacity="0.16">
+    <circle cx="600" cy="232" r="152" stroke-width="2" stroke-dasharray="6 13" />
+    <circle cx="600" cy="232" r="198" stroke-width="2" stroke-dasharray="2 16" />
+    <circle cx="600" cy="232" r="248" stroke-width="1.5" stroke-dasharray="12 20" />
+  </g>
+
+  <!-- trilhas de circuito -->
+  <g fill="none" stroke="#00d0ff" stroke-width="2" opacity="0.5">
+    <path d="M448 176H372l-34 34H262" />
+    <path d="M448 300h-64l-30-30h-92" />
+    <path d="M752 176h76l34 34h76" />
+    <path d="M752 300h64l30-30h92" />
+  </g>
+  <g fill="#00d0ff" opacity="0.75">
+    <circle cx="262" cy="210" r="5" />
+    <circle cx="262" cy="270" r="5" />
+    <circle cx="938" cy="210" r="5" />
+    <circle cx="938" cy="270" r="5" />
+  </g>
+
+  <!-- escudo -->
+  <path
+    d="M600 66 L754 125 V246 C754 334 686 392 600 418 C514 392 446 334 446 246 V125 Z"
+    fill="url(#vidro)"
+    stroke="url(#neon)"
+    stroke-width="7"
+    filter="url(#brilho)"
+  />
+  <path
+    d="M600 92 L730 142 V246 C730 322 674 370 600 394 C526 370 470 322 470 246 V142 Z"
+    fill="none"
+    stroke="#8cf0ff"
+    stroke-width="2"
+    opacity="0.5"
+  />
+
+  <!-- fechadura -->
+  <g filter="url(#brilho)">
+    <circle cx="600" cy="198" r="31" fill="none" stroke="#b6f9ff" stroke-width="10" />
+    <path d="M587 216h26l11 82h-48z" fill="#b6f9ff" />
+  </g>
+
+  <!-- detalhes: bits e marcas -->
+  <g fill="#7ef0ff" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="20" letter-spacing="6" opacity="0.28">
+    <text x="120" y="120">0110 1001</text>
+    <text x="930" y="372">1011 0100</text>
+    <text x="150" y="372">SEC</text>
+    <text x="980" y="120">HASH</text>
+  </g>
+
+  <!-- cantos de HUD -->
+  <g fill="none" stroke="#7ef0ff" stroke-width="3" opacity="0.45">
+    <path d="M56 56h70M56 56v70" />
+    <path d="M1144 56h-70M1144 56v70" />
+    <path d="M56 404h70M56 404v-70" />
+    <path d="M1144 404h-70M1144 404v-70" />
+  </g>
+</svg>

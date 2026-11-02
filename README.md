@@ -43,7 +43,7 @@ o jogo nunca fica na mão na frente do público.
 | `js/sound.js` | Efeitos sonoros sintetizados na hora (Web Audio API) |
 | `js/config.js` | Endereço da API |
 | `questoes.json` | Banco local usado no modo offline |
-| `assets/` | Logo, mascotes e fundos (WebP) |
+| `assets/` | Logo, mascotes, fundos (WebP) e as ilustrações por categoria (SVG) |
 | `api/` | Backend Node.js (Express? não — `node:http` puro) |
 | `tests/` | Testes da lógica da rodada |
 | `01`–`08` (raiz) | Entregas da disciplina de Banco de Dados: contexto, modelos, DDL, DML, testes, carga real e views |
