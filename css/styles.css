@@ -809,3 +809,70 @@ h1:focus-visible {
     background: Canvas;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Botão de som                                                       */
+/* ------------------------------------------------------------------ */
+
+.sound-toggle {
+  position: fixed;
+  right: clamp(0.75rem, 2vw, 1.5rem);
+  bottom: clamp(0.75rem, 2vw, 1.5rem);
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
+  border: 2px solid var(--color-cyan);
+  border-radius: 50%;
+  background: rgba(8, 4, 38, 0.78);
+  color: var(--color-white);
+  box-shadow: 0 0 18px 2px rgba(0, 208, 255, 0.55);
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.sound-toggle:hover {
+  transform: scale(1.07);
+}
+
+.sound-toggle:focus-visible {
+  outline: 3px solid var(--color-white);
+  outline-offset: 3px;
+}
+
+.sound-toggle svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* No modo mudo mostra o ícone cortado e apaga um pouco. */
+.sound-toggle__off {
+  display: none;
+}
+
+.sound-toggle.is-muted {
+  opacity: 0.6;
+  box-shadow: none;
+}
+
+.sound-toggle.is-muted .sound-toggle__on {
+  display: none;
+}
+
+.sound-toggle.is-muted .sound-toggle__off {
+  display: block;
+}
+
+@media (forced-colors: active) {
+  .sound-toggle {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+    box-shadow: none;
+  }
+}

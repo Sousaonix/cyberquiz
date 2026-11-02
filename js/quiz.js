@@ -1,5 +1,14 @@
 import { createRound, formatElapsed, summarize } from "./session.js";
 import { API_URL, API_TIMEOUT_MS } from "./config.js";
+import {
+  configurarBotaoSom,
+  lerPreferenciaDeSom,
+  playClick,
+  playCorrect,
+  playFinish,
+  playStart,
+  playWrong,
+} from "./sound.js";
 
 const THEME_CLASS = {
   cyan: "theme-cyan",
@@ -206,6 +215,13 @@ function chooseAnswer(letter) {
   chosenLetters.push(letter);
   const isCorrect = letter === question.resposta_correta;
 
+  // Som imediato ao clicar na alternativa.
+  if (isCorrect) {
+    playCorrect();
+  } else {
+    playWrong();
+  }
+
   for (const button of answerGrid.querySelectorAll(".answer-option")) {
     button.disabled = true;
     const choice = button.dataset.letter;
@@ -256,6 +272,9 @@ function renderResult() {
   statWrong.textContent = String(summary.wrongCount);
   statTime.textContent = formatElapsed(elapsed);
   showScreen("result");
+
+  // Fanfarra quando passa de metade; melodia discreta quando não passa.
+  playFinish(summary.percent >= 50);
 }
 
 async function startRound() {
@@ -316,6 +335,9 @@ playerForm.addEventListener("submit", (event) => {
   playerNameInput.removeAttribute("aria-invalid");
   playerNameInput.value = name;
 
+  // Este clique é o gesto que libera o áudio no navegador (iOS incluso).
+  playStart();
+
   try {
     rememberPlayerName(name);
   } catch {
@@ -329,7 +351,18 @@ playerForm.addEventListener("submit", (event) => {
 });
 
 restorePlayerName();
+lerPreferenciaDeSom();
+configurarBotaoSom(document.querySelector("#sound-toggle"));
 
-nextButton.addEventListener("click", advance);
-document.querySelector("#play-again").addEventListener("click", startRound);
-document.querySelector("#back-home").addEventListener("click", () => showScreen("welcome"));
+nextButton.addEventListener("click", () => {
+  playClick();
+  advance();
+});
+document.querySelector("#play-again").addEventListener("click", () => {
+  playClick();
+  startRound();
+});
+document.querySelector("#back-home").addEventListener("click", () => {
+  playClick();
+  showScreen("welcome");
+});

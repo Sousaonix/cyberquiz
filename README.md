@@ -40,6 +40,7 @@ o jogo nunca fica na mão na frente do público.
 | `css/styles.css` | Visual neon, um tema de cor por pergunta |
 | `js/quiz.js` | Interação, nome do jogador, cronômetro, carregamento da API |
 | `js/session.js` | Sorteio da rodada, placar e formatação do tempo |
+| `js/sound.js` | Efeitos sonoros sintetizados na hora (Web Audio API) |
 | `js/config.js` | Endereço da API |
 | `questoes.json` | Banco local usado no modo offline |
 | `assets/` | Logo, mascotes e fundos (WebP) |
@@ -128,7 +129,8 @@ disciplina de Web. No **SQL Editor do Supabase**, rode nesta ordem:
 ## Tecnologias
 
 HTML5 · CSS3 (variáveis, grid, `clamp`) · JavaScript ES Modules (sem framework)
-· Node.js (`node:http`, sem Express) · PostgreSQL 13+ · Supabase · Render ·
+· Web Audio API (sons gerados no navegador, sem arquivo de áudio) ·
+Node.js (`node:http`, sem Express) · PostgreSQL 13+ · Supabase · Render ·
 GitHub Pages · WebP (14,9 MB → 1,1 MB de imagens) · `node --test`
 
 ---
