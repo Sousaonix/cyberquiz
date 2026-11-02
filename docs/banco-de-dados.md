@@ -80,6 +80,6 @@ ALTERNATIVA (0,N) —escolhe———— (1,1) PONTUACAO
 | `07-seed-questoes.sql` | Carga real: 100 perguntas do jogo |
 | `08-views-api.sql` | Views que a API consome (`vw_quiz_json`, `vw_ranking`) |
 
-Para instalar no Supabase, use os arquivos prontos em [`../supabase/`](../supabase/): `setup.sql` (instala tudo) e `reset.sql` (limpa antes de reinstalar).
+Para instalar no Supabase, use os arquivos prontos em [`../supabase/`](../supabase/): `setup.sql` (instala tudo), `reset.sql` (limpa antes de reinstalar) e `limpar-ranking.sql` (zera jogadores e pontuações, mantendo as perguntas).
 
 Os diagramas estão em `CyberQuiz_MER_Chen.png` e `CyberQuiz_MER_Chen.svg`; o fonte do desenho é `mer.dot`.

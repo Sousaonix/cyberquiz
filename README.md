@@ -126,6 +126,7 @@ No **SQL Editor do Supabase**, rode **um único arquivo**:
 | --- | --- |
 | [`supabase/setup.sql`](supabase/setup.sql) | Cria o esquema, carrega as 100 perguntas e cria as views da API |
 | [`supabase/reset.sql`](supabase/reset.sql) | Só quando precisar reinstalar: apaga os objetos do CyberQuiz |
+| [`supabase/limpar-ranking.sql`](supabase/limpar-ranking.sql) | Zera jogadores e pontuações, mantendo as 100 perguntas |
 
 Se preferir rodar por partes, os arquivos originais estão em `docs/`
 (`04-ddl.sql`, `07-seed-questoes.sql`, `08-views-api.sql`), nessa ordem.
