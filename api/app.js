@@ -57,6 +57,25 @@ function statusDoErro(erro) {
   return Number.isInteger(erro?.status) ? erro.status : 500;
 }
 
+// Diagnóstico de configuração para o /health: diz o TIPO e o TAMANHO da
+// chave em uso, nunca o conteúdo. Serve para saber se o servidor já
+// recebeu a chave nova depois de salvar as variáveis no Render.
+function diagnosticoBanco() {
+  const url = process.env.SUPABASE_URL ?? "";
+  const chave = process.env.SUPABASE_KEY ?? "";
+
+  let tipo = "ausente";
+  if (chave.startsWith("sb_secret_")) tipo = "secret";
+  else if (chave.startsWith("sb_publishable_")) tipo = "publishable";
+  else if (chave.startsWith("eyJ")) tipo = "jwt";
+  else if (chave) tipo = "desconhecido";
+
+  return {
+    url: url ? url.replace(/^https?:\/\//, "").replace(/\/.*$/, "") : null,
+    chave: { tipo, tamanho: chave.length, sobraEspaco: chave !== chave.trim() },
+  };
+}
+
 export function createServer({
   loadPerguntas,
   loadRanking,
@@ -94,9 +113,15 @@ export function createServer({
         return {
           status: "ok",
           perguntas: perguntas.length,
+          banco: diagnosticoBanco(),
           hora: new Date().toISOString(),
         };
       },
+    },
+    {
+      metodo: "GET",
+      padrao: /^\/diagnostico$/,
+      tratar: () => ({ corpo: diagnosticoBanco() }),
     },
     {
       metodo: "GET",
