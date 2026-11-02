@@ -12,7 +12,14 @@ Marco M2. O desenho lógico (tabelas, colunas, PK e FK) é entregue em `03-logic
 | IDIOMA — FONTE | 1:N | FK no lado N | `fonte.id_idioma` → `idioma.id_idioma` |
 | PERGUNTA — ALTERNATIVA | 1:N | FK no lado N | `alternativa.id_pergunta` → `pergunta.id_pergunta` |
 | Regra de gabarito (RD06) | 1 alternativa correta por pergunta | atributo `correta` + índice único parcial + gatilho adiado | `alternativa.correta`; `ux_alternativa_uma_correta`; `fn_checar_gabarito` |
-| JOGADOR | — | tabela isolada | sem FK: o jogador não se relaciona com pergunta neste recorte |
+| JOGADOR — PONTUACAO | 1:N | FK no lado N | `pontuacao.id_jogador` → `jogador.id_jogador` |
+| PERGUNTA — PONTUACAO | 1:N | FK no lado N | `pontuacao.id_pergunta` → `pergunta.id_pergunta` |
+| ALTERNATIVA — PONTUACAO (escolhe) | 1:N | FK no lado N | `pontuacao.id_alternativa` → `alternativa.id_alternativa` |
+| Um jogador responde cada pergunta uma única vez | — | restrição | `uq_pontuacao_jogador_pergunta (id_jogador, id_pergunta)` |
+
+O relacionamento **escolhe** (ALTERNATIVA — PONTUACAO) é o que registra *qual* alternativa o jogador marcou; por isso a pontuação aponta para a alternativa, e não apenas para a pergunta. O par `(id_jogador, id_pergunta)` é único porque um jogador não responde a mesma pergunta duas vezes.
+
+**Ranking não é tabela.** O DER não traz entidade de ranking: ele é calculado pela soma de `pontuacao.valor_pontos` por jogador, entregue pela view `vw_ranking` (`08-views-api.sql`).
 
 **N:N:** não existe no recorte, e por isso não há tabela associativa. Nenhum requisito pede que uma entidade se ligue a várias da outra guardando atributos do par.
 
@@ -32,6 +39,8 @@ Marco M2. O desenho lógico (tabelas, colunas, PK e FK) é entregue em `03-logic
 | DF8 | `codigo → id_pergunta` (chave candidata) | RD08 |
 | DF9 | `id_jogador → nome, email, senha_hash` | cadastro/login |
 | DF10 | `email → id_jogador` (chave candidata) | RNF02 |
+| DF11 | `id_pontuacao → id_jogador, id_pergunta, id_alternativa, valor_pontos, data_resposta` | RA04, RD11 |
+| DF12 | `(id_jogador, id_pergunta) → id_pontuacao` (chave candidata) | uma resposta por jogador |
 
 | Forma | Por que o esquema atende | Tabela em que isso aparece |
 | --- | --- | --- |
@@ -104,6 +113,19 @@ Marco M2. O desenho lógico (tabelas, colunas, PK e FK) é entregue em `03-logic
 | email | VARCHAR(254) | NOT NULL | UNIQUE (`uq_jogador_email`) | E-mail usado no login |
 | senha_hash | TEXT | NOT NULL | — | Hash da senha; a senha em texto puro nunca é gravada |
 
+### Tabela: pontuacao
+
+| Coluna | Tipo e tamanho | Nulo | Restrição | Descrição |
+| --- | --- | --- | --- | --- |
+| id_pontuacao | INTEGER | NOT NULL | PK | Identificador da resposta registrada |
+| id_jogador | INTEGER | NOT NULL | FK → jogador.id_jogador (ON DELETE CASCADE) | Jogador que respondeu |
+| id_pergunta | INTEGER | NOT NULL | FK → pergunta.id_pergunta (ON DELETE CASCADE) | Pergunta respondida |
+| id_alternativa | INTEGER | NOT NULL | FK → alternativa.id_alternativa | Alternativa escolhida (relacionamento *escolhe*) |
+| valor_pontos | INTEGER | NOT NULL | DEFAULT 0; CHECK >= 0; calculado pelo gatilho `trg_pontuacao_pontua` | 10 quando a alternativa escolhida é a correta, 0 quando é errada |
+| data_resposta | TIMESTAMPTZ | NOT NULL | DEFAULT `now()` | Momento em que a resposta foi registrada |
+
+Chave candidata: `UNIQUE (id_jogador, id_pergunta)` (`uq_pontuacao_jogador_pergunta`).
+
 ### Regras que não cabem em uma coluna
 
 | Regra | Onde é garantida |
@@ -111,3 +133,6 @@ Marco M2. O desenho lógico (tabelas, colunas, PK e FK) é entregue em `03-logic
 | Exatamente uma alternativa correta por pergunta (RD06) | índice parcial `ux_alternativa_uma_correta` + gatilho adiado `trg_pergunta_valida` / `trg_alternativa_valida` |
 | No mínimo duas alternativas por pergunta (RD05/RD07) | função `fn_checar_gabarito`, chamada no `COMMIT` |
 | Alternativas desaparecem com a pergunta | `ON DELETE CASCADE` em `alternativa.id_pergunta` |
+| A alternativa escolhida pertence à pergunta respondida | gatilho `fn_pontuar_resposta` (BEFORE INSERT/UPDATE em `pontuacao`) |
+| `valor_pontos` depende de acertar ou errar | gatilho `fn_pontuar_resposta` — o valor não é digitado pela aplicação |
+| Ranking por jogador | view `vw_ranking` (soma de `valor_pontos`) |

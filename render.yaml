@@ -1,0 +1,25 @@
+# =====================================================================
+#  Blueprint do Render para a API do CyberQuiz.
+#
+#  No Render: New + -> Blueprint -> escolha este repositório.
+#  Ele lê este arquivo e cria o Web Service já configurado.
+#  Depois preencha SUPABASE_URL e SUPABASE_KEY no painel (Environment).
+# =====================================================================
+
+services:
+  - type: web
+    name: cyberquiz-api
+    runtime: node
+    plan: free
+    rootDir: api
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: CORS_ORIGIN
+        value: https://sousaonix.github.io,http://localhost:3000,http://127.0.0.1:5500

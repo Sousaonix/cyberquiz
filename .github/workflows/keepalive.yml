@@ -1,0 +1,26 @@
+# =====================================================================
+#  Mantém a API do Render acordada.
+#
+#  O plano free do Render "dorme" depois de ~15 minutos sem acesso e leva
+#  até 1 minuto para acordar. Um ping a cada 10 minutos evita que o
+#  primeiro visitante da feira espere.
+#
+#  Ative em: Actions -> "Manter a API acordada" -> Run workflow (uma vez),
+#  e troque a URL abaixo se o serviço tiver outro nome.
+# =====================================================================
+
+name: Manter a API acordada
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping no /health
+        run: |
+          curl -fsS --retry 2 --retry-delay 5 --max-time 40 \
+            https://cyberquiz-api.onrender.com/health || true

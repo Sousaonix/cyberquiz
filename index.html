@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="CyberQuiz: rodada de 10 perguntas sobre segurança cibernética e inteligência artificial."
+    />
+    <meta name="theme-color" content="#080426" />
+    <title>CyberQuiz</title>
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+    <main id="conteudo" tabindex="-1">
+      <section id="welcome" class="welcome-template" aria-labelledby="welcome-title">
+        <div class="welcome-content">
+          <h1 id="welcome-title">
+            <img class="brand-logo" src="assets/logo.webp" alt="CyberQuiz" />
+          </h1>
+          <p id="load-error" class="load-error" role="alert" tabindex="-1" hidden></p>
+          <noscript>
+            <p class="load-error">Ative o JavaScript para jogar o CyberQuiz.</p>
+          </noscript>
+          <form id="player-form" class="action-stack" novalidate>
+            <div class="player-field">
+              <label for="player-name">Nome do jogador</label>
+              <input
+                id="player-name"
+                name="playerName"
+                class="player-name"
+                type="text"
+                maxlength="40"
+                autocomplete="nickname"
+                placeholder="Digite seu nome para jogar"
+                required
+                aria-describedby="player-name-error"
+              />
+              <p id="player-name-error" class="load-error" role="alert" hidden></p>
+            </div>
+            <button class="neon-button" type="submit">Jogar</button>
+          </form>
+        </div>
+      </section>
+
+      <section id="quiz" class="quiz-template theme-cyan" aria-labelledby="question-title" hidden>
+        <div class="quiz-shell">
+          <header class="question-visual">
+            <img src="assets/mascot-question.webp?v=3" alt="Mascote robô do CyberQuiz" />
+          </header>
+
+          <article class="question-card">
+            <p id="question-progress" class="question-progress"></p>
+            <h1 id="question-title" tabindex="-1"></h1>
+          </article>
+
+          <div id="answer-grid" class="answer-grid" role="group" aria-labelledby="question-title"></div>
+
+          <div id="feedback" class="feedback-card" hidden>
+            <p id="feedback-verdict" class="feedback-verdict" role="status"></p>
+            <p id="feedback-explanation"></p>
+            <p id="feedback-source" class="feedback-source">
+              <a id="feedback-link" target="_blank" rel="noopener noreferrer">Consultar a fonte</a>
+            </p>
+            <button id="next-question" class="neon-button" type="button">Próxima pergunta</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="result" class="result-template theme-green" aria-labelledby="result-title" hidden>
+        <div class="result-board">
+          <p class="result-brand">CyberQuiz</p>
+          <div class="result-grid">
+            <article class="result-main">
+              <header class="result-heading">
+                <h1 id="result-title" tabindex="-1">Parabéns!</h1>
+                <p class="result-kicker">Você terminou o quiz!</p>
+                <p id="result-detail">Seu conhecimento em tecnologia é realmente impressionante!</p>
+              </header>
+
+              <div class="result-scoreline">
+                <figure class="result-mascot">
+                  <img src="assets/mascot-result.webp?v=3" alt="Mascote robô do CyberQuiz" />
+                </figure>
+                <div class="score-summary">
+                  <div class="score-ring" id="score-ring" style="--score: 0">
+                    <div class="score-ring-core">
+                      <strong id="score-value">0</strong>
+                      <span id="score-total">/10</span>
+                    </div>
+                  </div>
+                  <p class="score-caption">
+                    <span class="score-caption-label">Acertos</span>
+                    <span id="score-sentence">Você acertou 0 de 10 perguntas!</span>
+                  </p>
+                </div>
+              </div>
+
+              <p class="result-rank">
+                Resultado:
+                <strong id="result-rank">Expert em Tecnologia</strong>
+              </p>
+              <p class="result-note">Continue estudando e explorando esse universo incrível!</p>
+
+              <footer class="result-actions">
+                <button id="play-again" class="neon-button" type="button">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M20 12a8 8 0 1 1-2.3-5.7"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    />
+                    <path d="M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                  </svg>
+                  Jogar novamente
+                </button>
+                <button id="back-home" class="neon-button neon-button--secondary" type="button">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M4 11.5 12 4l8 7.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                  Voltar ao início
+                </button>
+              </footer>
+            </article>
+
+            <aside class="result-aside" aria-labelledby="performance-title">
+              <section class="performance-card">
+                <h2 id="performance-title">Seu desempenho</h2>
+                <ul class="performance-list">
+                  <li>
+                    <svg class="stat-icon stat-icon--correct" viewBox="0 0 24 24" aria-hidden="true">
+                      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" />
+                      <path d="M8 12.5 11 15.5 16.5 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                    <span>Acertos</span>
+                    <strong id="stat-correct">0</strong>
+                  </li>
+                  <li>
+                    <svg class="stat-icon stat-icon--wrong" viewBox="0 0 24 24" aria-hidden="true">
+                      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" />
+                      <path d="M9 9l6 6M15 9l-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                    <span>Erros</span>
+                    <strong id="stat-wrong">0</strong>
+                  </li>
+                  <li>
+                    <svg class="stat-icon stat-icon--time" viewBox="0 0 24 24" aria-hidden="true">
+                      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" />
+                      <path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                    <span>Tempo</span>
+                    <strong id="stat-time">00:00</strong>
+                  </li>
+                </ul>
+              </section>
+              <p class="result-quote">Grandes conhecimentos começam com uma simples pergunta!</p>
+            </aside>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="js/quiz.js"></script>
+  </body>
+</html>

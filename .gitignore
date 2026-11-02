@@ -1,0 +1,13 @@
+# Dependências
+node_modules/
+
+# Segredos — NUNCA vão para o repositório
+.env
+.env.local
+.env.*.local
+
+# Logs e temporários
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db

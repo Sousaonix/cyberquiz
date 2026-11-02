@@ -1,0 +1,1402 @@
+[
+  {
+    "id": 1,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual é o principal objetivo de uma VPN (Rede Virtual Privada) em segurança cibernética?",
+    "opcoes": {
+      "A": "Acelerar a conexão com a internet.",
+      "B": "Criptografar e proteger as comunicações pela internet.",
+      "C": "Bloquear sites maliciosos.",
+      "D": "Aumentar a intensidade do sinal Wi-Fi."
+    },
+    "resposta_correta": "B",
+    "explicacao": "O principal objetivo de uma VPN é criptografar e proteger a comunicação pela internet.",
+    "fonte": "https://aws.amazon.com/pt/what-is/vpn/"
+  },
+  {
+    "id": 2,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual comando pode ser usado no prompt de comando do DOS ou do Windows para ocultar arquivos?",
+    "opcoes": {
+      "A": "Stealth [arquivo/diretório].",
+      "B": "Attrib +h [arquivo / diretório].",
+      "C": "Ocultar -h [arquivo/diretório].",
+      "D": "Attrib *h [ arquivo / diretório]."
+    },
+    "resposta_correta": "B",
+    "explicacao": "O comando 'attrib +h [arquivo/diretório]' ativa os atributos ocultos, ocultando-os.",
+    "fonte": "https://www.wikihow.com/Hide-Files-in-Cmd"
+  },
+  {
+    "id": 3,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "O que é uma rede de computadores?",
+    "opcoes": {
+      "A": "Provedor de Serviços de Internet.",
+      "B": "Um computador quântico.",
+      "C": "Computadores/Dispositivos que estão conectados entre si.",
+      "D": "Cabos de fibra óptica."
+    },
+    "resposta_correta": "C",
+    "explicacao": "Uma rede de computadores é um conjunto de computadores conectados entre si com o objetivo de compartilhar recursos.",
+    "fonte": "https://aws.amazon.com/pt/what-is/computer-networking/"
+  },
+  {
+    "id": 4,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "O que é um worm que afeta servidores SQL?",
+    "opcoes": {
+      "A": "SQL Slammer.",
+      "B": "Verme da Tempestade.",
+      "C": "SQL Michelangelo.",
+      "D": "O Grande Verme."
+    },
+    "resposta_correta": "A",
+    "explicacao": "O SQL Slammer é um worm de computador que causou uma negação de serviço em alguns servidores da Internet e reduziu drasticamente o tráfego geral da Internet.",
+    "fonte": "https://www.fortinet.com/br/resources/cyberglossary/worm-virus"
+  },
+  {
+    "id": 5,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual é o principal objetivo de um \"sandbox\" em segurança cibernética?",
+    "opcoes": {
+      "A": "Um armazenamento seguro para senhas.",
+      "B": "Isolar e analisar programas suspeitos ou não confiáveis.",
+      "C": "Criando um ambiente de testes virtual para hackers éticos.",
+      "D": "Proteção contra ataques de phishing."
+    },
+    "resposta_correta": "B",
+    "explicacao": "Isolar e executar arquivos, programas ou códigos suspeitos em um ambiente seguro e controlado para analisar seu comportamento sem colocar em risco a rede ou o sistema operacional principal.",
+    "fonte": "https://www.proofpoint.com/us/threat-reference/sandbox"
+  },
+  {
+    "id": 6,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "O que significa o termo \"firewall\" em segurança cibernética?",
+    "opcoes": {
+      "A": "Um traje de proteção usado por profissionais de cibersegurança.",
+      "B": "Uma barreira física em torno dos servidores de computador.",
+      "C": "Um sistema de segurança que monitora e controla o tráfego de rede.",
+      "D": "Software para evitar o superaquecimento do computador."
+    },
+    "resposta_correta": "C",
+    "explicacao": "É uma barreira de segurança que monitora e controla o tráfego de dados entre uma rede interna confiável e redes externas não seguras, como a internet.",
+    "fonte": "https://www.fortinet.com/br/resources/cyberglossary/firewall"
+  },
+  {
+    "id": 7,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Que tipo de software infecta uma máquina, bloqueia os arquivos e depois pede dinheiro?",
+    "opcoes": {
+      "A": "Verme.",
+      "B": "Trojan.",
+      "C": "Ransomware.",
+      "D": "Sequestrador de navegador."
+    },
+    "resposta_correta": "C",
+    "explicacao": "Ransomware é um tipo de malware malicioso que ameaça publicar os dados da vítima ou bloquear permanentemente o acesso a eles, a menos que um resgate seja pago.",
+    "fonte": "https://www.akamai.com/lp/ebook/ebook-5-step-ransomware-defense-ebook"
+  },
+  {
+    "id": 8,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual é a finalidade de um CAPTCHA na segurança online?",
+    "opcoes": {
+      "A": "Detecção de malware.",
+      "B": "Autenticação de usuários.",
+      "C": "Prevenção de bots automatizados.",
+      "D": "Criptografar dados."
+    },
+    "resposta_correta": "C",
+    "explicacao": "O objetivo do CAPTCHA na segurança online é impedir bots automatizados.",
+    "fonte": "https://www.cloudflare.com/pt-br/learning/bots/how-captchas-work/"
+  },
+  {
+    "id": 9,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual desses grupos explora vulnerabilidades?",
+    "opcoes": {
+      "A": "Governos.",
+      "B": "Criminosos.",
+      "C": "Hacktivistas.",
+      "D": "Todas as opções acima."
+    },
+    "resposta_correta": "D",
+    "explicacao": "Governos, criminosos e hacktivistas podem explorar sua rede.",
+    "fonte": "https://cidadaniaativa.uff.br/2024/06/11/grupos-vulneraveis/"
+  },
+  {
+    "id": 10,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Como se chama um grupo de computadores interligados em rede e usados por hackers para roubar informações?",
+    "opcoes": {
+      "A": "Rootkit.",
+      "B": "Sistema Operacional.",
+      "C": "Botnet.",
+      "D": "DDoS."
+    },
+    "resposta_correta": "C",
+    "explicacao": "Uma botnet é uma coleção de dispositivos conectados à internet, que podem incluir PCs, servidores, dispositivos móveis e dispositivos IoT, infectados e controlados por um malware comum.",
+    "fonte": "https://www.quora.com/What-is-called-a-group-of-computers-that-is-networked-together-and-used-by-hackers-to-steal-information"
+  },
+  {
+    "id": 11,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual das seguintes opções descreve a criptografia de chave assimétrica?",
+    "opcoes": {
+      "A": "Consiste em uma chave de assinatura privada e uma chave de verificação pública;",
+      "B": "O remetente e o destinatário devem compartilhar uma chave de forma segura;",
+      "C": "Não pode ser usado para fins de não repúdio;",
+      "D": "Não pode ser usado para autenticação do remetente."
+    },
+    "resposta_correta": "A",
+    "explicacao": "A criptografia de chave assimétrica utiliza um par de chaves composto por uma chave privada para assinatura e uma chave pública para verificação.",
+    "fonte": "https://www.qconcursos.com/questoes-de-concursos/questoes/ffc72350-56"
+  },
+  {
+    "id": 12,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual das seguintes opções é um ataque DoS?",
+    "opcoes": {
+      "A": "Monitorar o tráfego de rede para identificar o endereço MAC de um computador;",
+      "B": "Bombardear continuamente uma rede alvo com solicitações falsas;",
+      "C": "Injetar comandos falsos de reconfiguração de rede;",
+      "D": "Forçar os computadores a interromperem suas conexões e se reconectarem ao ponto de acesso do atacante."
+    },
+    "resposta_correta": "B",
+    "explicacao": "Bombardear continuamente uma rede alvo com solicitações falsas é uma forma de ataque de negação de serviço (DoS), sobrecarregando o sistema.",
+    "fonte": "https://www.akamai.com/pt/glossary/what-is-ddos"
+  },
+  {
+    "id": 13,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual das seguintes opções descreve um software de monitoramento instalado sem o seu consentimento?",
+    "opcoes": {
+      "A": "Malware;",
+      "B": "Adware;",
+      "C": "Spyware;",
+      "D": "Ransomware."
+    },
+    "resposta_correta": "C",
+    "explicacao": "Spyware é um software instalado sem consentimento focado principalmente em coletar secretamente informações sobre o usuário.",
+    "fonte": "https://www.paloaltonetworks.com.br/cyberpedia/what-is-spyware"
+  },
+  {
+    "id": 14,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual das seguintes opções oferece a criptografia de sinal sem fio mais forte?",
+    "opcoes": {
+      "A": "WEP;",
+      "B": "WAP;",
+      "C": "WIPS;",
+      "D": "WPA."
+    },
+    "resposta_correta": "D",
+    "explicacao": "O WPA oferece criptografia e autenticação aprimoradas em comparação com o WEP entre as opções disponíveis.",
+    "fonte": "https://www.sony.com.br/electronics/support/articles/00009475"
+  },
+  {
+    "id": 15,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Um evento que sinaliza a um IDS para gerar um alarme quando nenhum ataque ocorreu seria classificado como qual das seguintes opções?",
+    "opcoes": {
+      "A": "Falso Positivo;",
+      "B": "Falso negativo;",
+      "C": "Verdadeiro Negativo;",
+      "D": "Verdadeiro Positivo."
+    },
+    "resposta_correta": "A",
+    "explicacao": "Um falso positivo ocorre quando um evento é erroneamente identificado como um ataque por um IDS sem que nenhum ataque real tenha ocorrido.",
+    "fonte": "https://www.gta.ufrj.br/grad/16_2_v1/2016IDS/conceituacao.html"
+  },
+  {
+    "id": 16,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual dos protocolos a seguir é um protocolo de acesso remoto seguro?",
+    "opcoes": {
+      "A": "SSH;",
+      "B": "FTP;",
+      "C": "Telnet;",
+      "D": "SMTP."
+    },
+    "resposta_correta": "A",
+    "explicacao": "SSH e Telnet são protocolos de acesso remoto, mas apenas o SSH é criptografado.",
+    "fonte": "https://www.cloudflare.com/learning/access-management/what-is-ssh/"
+  },
+  {
+    "id": 17,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual dos seguintes ataques requer que um arquivo portador se autorreplique?",
+    "opcoes": {
+      "A": "Trojan;",
+      "B": "Vírus;",
+      "C": "Minhoca;",
+      "D": "Spam."
+    },
+    "resposta_correta": "B",
+    "explicacao": "Vírus normalmente precisam de um arquivo hospedeiro para se anexarem e se propagarem, ao contrário de worms.",
+    "fonte": "https://www.fortinet.com/br/resources/cyberglossary/types-of-cyber-attacks"
+  },
+  {
+    "id": 18,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual dos seguintes testes fornece pouca ou nenhuma informação sobre o sistema ao testador de penetração?",
+    "opcoes": {
+      "A": "Caixa cinza;",
+      "B": "Caixa branca;",
+      "C": "Caixa Azul;",
+      "D": "Caixa preta."
+    },
+    "resposta_correta": "D",
+    "explicacao": "No teste de caixa preta (black box), o testador atua sem conhecimento prévio ou documentação do sistema.",
+    "fonte": "https://www.redscan.com/news/types-of-pen-testing-white-box-black-box-and-everything-in-between/"
+  },
+  {
+    "id": 19,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Alguém que se faz passar por um técnico de TI solicita informações sobre a configuração do seu computador. Que tipo de ataque é esse?",
+    "opcoes": {
+      "A": "Ameaça interna;",
+      "B": "Phishing;",
+      "C": "Engenharia social;",
+      "D": "Baleia."
+    },
+    "resposta_correta": "C",
+    "explicacao": "Trata-se de engenharia social, pois explora a psicologia e a confiança humana mediante personificação para obter dados confidenciais.",
+    "fonte": "https://www.bitdefender.com.br/consumer/support/answer/106665/"
+  },
+  {
+    "id": 20,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Um site de rede que aparenta conter informações valiosas, mas que está isolado e monitorado, constitui que tipo de medida de segurança?",
+    "opcoes": {
+      "A": "Pseudo-rede;",
+      "B": "Pote de mel;",
+      "C": "Rede Virtual;",
+      "D": "Armadilha para Canários."
+    },
+    "resposta_correta": "B",
+    "explicacao": "Um honeypot (pote de mel) é um ambiente isolado projetado para atrair e estudar técnicas de invasores.",
+    "fonte": "https://www.qconcursos.com/questoes-de-concursos/questoes/8268fc45-a3"
+  },
+  {
+    "id": 21,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Quais informações você precisa para configurar um ponto de acesso sem fio?",
+    "opcoes": {
+      "A": "SSID;",
+      "B": "endereço MAC;",
+      "C": "endereço IP;",
+      "D": "ARP."
+    },
+    "resposta_correta": "A",
+    "explicacao": "O SSID (Service Set Identifier) é o nome essencial que identifica a rede sem fio para os dispositivos.",
+    "fonte": "https://www.tp-link.com/br/support/faq/1384/"
+  },
+  {
+    "id": 22,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual das seguintes opções é um algoritmo de hash de senha?",
+    "opcoes": {
+      "A": "AES",
+      "B": "MD4",
+      "C": "PGP",
+      "D": "3DES"
+    },
+    "resposta_correta": "B",
+    "explicacao": "MD4 é uma função hash criptográfica (embora obsoleta). AES, PGP e 3DES são algoritmos de criptografia.",
+    "fonte": "https://www.ibm.com/docs/pt-br/aix/7.3.0?topic=algorithm-password-hashing-algorithms"
+  },
+  {
+    "id": 23,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Quais são os dois tipos de firewalls de camada de rede?",
+    "opcoes": {
+      "A": "Com estado e sem estado",
+      "B": "Dinâmico e estático",
+      "C": "Anomalia e assinatura",
+      "D": "Obrigatório e discricionário"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Firewalls com estado (stateful) analisam a conexão como um todo, enquanto sem estado (stateless) analisam pacotes isoladamente.",
+    "fonte": "https://www.paloaltonetworks.com.br/cyberpedia/types-of-firewalls"
+  },
+  {
+    "id": 24,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual das seguintes opções NÃO é uma ferramenta de software para quebrar senhas?",
+    "opcoes": {
+      "A": "Macaco de Mel",
+      "B": "Caim e Abel",
+      "C": "João, o Estripador",
+      "D": "Hashcat"
+    },
+    "resposta_correta": "A",
+    "explicacao": "HoneyMonkey (Macaco de Mel) é um honeypot de pesquisa da Microsoft, não uma ferramenta de quebra de senhas.",
+    "fonte": "https://www.deel.com/blog/password-cracking/"
+  },
+  {
+    "id": 25,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual das seguintes opções NÃO é um ataque DoS?",
+    "opcoes": {
+      "A": "Spoofing de servidor",
+      "B": "Transmissão Ping",
+      "C": "Ping da Morte",
+      "D": "Smurf"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Spoofing de servidor consiste em falsificar uma identidade para obter acesso ou enganar clientes, e não exaurir recursos de serviço.",
+    "fonte": "https://www.passeidireto.com/es/question/200396892/qual-das-seguintes-opcoes-e-considerada-uma-ameaca-comum-no-ciberespaco-a-ataque"
+  },
+  {
+    "id": 26,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual das seguintes opções representa o padrão de segurança do WPA2?",
+    "opcoes": {
+      "A": "802.11ad",
+      "B": "802.11i",
+      "C": "802.11n",
+      "D": "802.11a"
+    },
+    "resposta_correta": "B",
+    "explicacao": "O padrão IEEE 802.11i define a arquitetura e especificações de segurança implementadas pelo WPA2.",
+    "fonte": "https://www.kaspersky.com.br/resource-center/definitions/wireless-protected-access-2"
+  },
+  {
+    "id": 27,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Quais são os dois tipos de sistemas de prevenção de intrusões?",
+    "opcoes": {
+      "A": "Passivo e ativo",
+      "B": "Anomalia e assinatura",
+      "C": "Hospedagem e rede",
+      "D": "Interno e externo"
+    },
+    "resposta_correta": "C",
+    "explicacao": "Sistemas IPS são comumente categorizados pelo local de implantação: baseados em host (HIPS) ou rede (NIPS).",
+    "fonte": "https://www.ibm.com/br-pt/think/topics/intrusion-prevention-system"
+  },
+  {
+    "id": 28,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual das seguintes opções utiliza criptografia de chave assimétrica?",
+    "opcoes": {
+      "A": "AES",
+      "B": "PGP",
+      "C": "3DES",
+      "D": "RC5"
+    },
+    "resposta_correta": "B",
+    "explicacao": "O PGP utiliza criptografia assimétrica baseada em par de chaves pública e privada para proteção de dados e assinaturas.",
+    "fonte": "https://www.ibm.com/br-pt/think/topics/cryptography-types"
+  },
+  {
+    "id": 29,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual das seguintes opções NÃO é um tipo de vírus?",
+    "opcoes": {
+      "A": "Escavação de túneis",
+      "B": "Setor de botas",
+      "C": "Macro",
+      "D": "Invólucro"
+    },
+    "resposta_correta": "D",
+    "explicacao": "Wrapper (invólucro) é um recurso de programação/empacotamento de software e não uma categoria inerente de vírus.",
+    "fonte": "https://www.dell.com/support/kbdoc/pt-pt/000132699/quais-s%C3%A3o-os-diferentes-tipos-de-v%C3%ADrus-spyware-e-malware-que-podem-infectar-meu-computador"
+  },
+  {
+    "id": 30,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Quais são os dois tipos de listas de controle de acesso baseadas em funções?",
+    "opcoes": {
+      "A": "Objeto e permissão",
+      "B": "Sistema de arquivos e redes",
+      "C": "Dinâmico e estático",
+      "D": "Obrigatório e discricionário"
+    },
+    "resposta_correta": "D",
+    "explicacao": "O controle de acesso obrigatório (MAC) e o discricionário (DAC) são dois modelos clássicos de atribuição de permissões.",
+    "fonte": "https://www.linkedin.com/learning/nocoes-basicas-de-seguranca-da-microsoft-conceitos-solucoes-e-seguranca-com-tecnologia-de-ia/funcoes-e-controle-de-acesso-rbac-no-microsoft-entra"
+  },
+  {
+    "id": 31,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual das seguintes opções seria a melhor senha?",
+    "opcoes": {
+      "A": "Meu Segredo",
+      "B": "Iw2c^tILV",
+      "C": "ABC123",
+      "D": "Teclado"
+    },
+    "resposta_correta": "B",
+    "explicacao": "Iw2c^tILV possui complexidade de caracteres, comprimento adequado e imprevisibilidade sem palavras comuns de dicionário.",
+    "fonte": "https://www.mcafee.com/blogs/pt-br/seguranca-na-internet/15-dicas-para-senhas-mais-seguras/"
+  },
+  {
+    "id": 32,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Ao receber um e-mail de um contato desconhecido com um anexo, você deve:",
+    "opcoes": {
+      "A": "Abra o anexo para visualizar o conteúdo.",
+      "B": "Apague o e-mail",
+      "C": "Encaminhe o e-mail para seus colegas para que eles possam abrir o anexo primeiro.",
+      "D": "Encaminhe o e-mail para sua conta de e-mail pessoal para que você possa abri-lo em casa."
+    },
+    "resposta_correta": "B",
+    "explicacao": "A conduta padrão de segurança ao receber anexos desconhecidos é excluí-los sem abrir nem encaminhar.",
+    "fonte": "https://www.kaspersky.com.br/blog/how-to-deal-with-email-phishing/24081/"
+  },
+  {
+    "id": 33,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual software é desenvolvido especificamente para detectar vírus de computador e impedi-los de entrar no sistema?",
+    "opcoes": {
+      "A": "Spyware",
+      "B": "Malware",
+      "C": "Adware",
+      "D": "Antivírus"
+    },
+    "resposta_correta": "D",
+    "explicacao": "Antivírus é a ferramenta de proteção criada especificamente para monitorar, detectar e remover infecções do sistema.",
+    "fonte": "https://www.sophos.com/pt-br/cybersecurity-explained/antivirus"
+  },
+  {
+    "id": 34,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual das seguintes opções representa um uso adequado do e-mail?",
+    "opcoes": {
+      "A": "Nunca envie informações pessoais por e-mail.",
+      "B": "Envie listas de preços para os produtos do seu negócio em casa.",
+      "C": "Encaminhe e-mails inspiradores e divertidos para seus colegas de trabalho para alegrar o dia deles.",
+      "D": "Envie um e-mail para todos os seus amigos e colegas de trabalho para anunciar uma vaga de emprego na sua região."
+    },
+    "resposta_correta": "D",
+    "explicacao": "Compartilhar vagas legítimas auxilia a rede profissional sem infringir políticas corporativas básicas.",
+    "fonte": "https://validcertificadora.com.br/blogs/tecnologia/e-mail-corporativo-10-boas-praticas-a-serem-seguidas-por-funcionarios"
+  },
+  {
+    "id": 35,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual das seguintes opções é um exemplo de programa antivírus?",
+    "opcoes": {
+      "A": "McAfee",
+      "B": "Cura rápida",
+      "C": "Kaspersky",
+      "D": "Tudo o que precede"
+    },
+    "resposta_correta": "D",
+    "explicacao": "McAfee, Quick Heal (Cura rápida) e Kaspersky são softwares antivírus de proteção de endpoints.",
+    "fonte": "https://www.alaresinternet.com.br/indoalem/seguranca-digital/melhor-antivirus/"
+  },
+  {
+    "id": 36,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual é o método de transmissão de vírus mais comum?",
+    "opcoes": {
+      "A": "E-mail",
+      "B": "Mensagem instantânea",
+      "C": "Download da Internet",
+      "D": "Mídia portátil"
+    },
+    "resposta_correta": "A",
+    "explicacao": "O correio eletrônico continua sendo o principal vetor de propagação em massa de ameaças cibernéticas.",
+    "fonte": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7148619/"
+  },
+  {
+    "id": 37,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Sua irmã lhe envia um e-mail no trabalho com um protetor de tela que ela diz que você vai adorar. O que você deve fazer?",
+    "opcoes": {
+      "A": "Faça o download para o seu computador, pois é de uma fonte confiável.",
+      "B": "Encaminhe a mensagem para outros amigos para que eles também a compartilhem.",
+      "C": "Ligue para o departamento de TI e peça ajuda para instalar o produto.",
+      "D": "Apague a mensagem."
+    },
+    "resposta_correta": "D",
+    "explicacao": "Protetores de tela (.scr/.exe) não solicitados no ambiente corporativo representam alto risco de malware e devem ser apagados.",
+    "fonte": "https://www.meuguru.com/guru-ia/pergunta/estudos-gerais/7-sobre-a-comunicacao-por-e-mail-no-ambiente-corporativo,-classifique-como-verdadeira-v-ou-falsa-8znPhskQa"
+  },
+  {
+    "id": 38,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Quem, entre os seguintes, é conhecido por suas técnicas de defesa contra vírus de computador?",
+    "opcoes": {
+      "A": "Eric Corley",
+      "B": "Tim Berners-Lee",
+      "C": "Robert Tappan Morris",
+      "D": "Fred Cohen"
+    },
+    "resposta_correta": "D",
+    "explicacao": "Fred Cohen foi pioneiro na definição acadêmica de vírus e no desenvolvimento das primeiras estratégias de defesa computacional nos anos 1980.",
+    "fonte": "https://www.kaspersky.com.br/resource-center/threats/computer-viruses-and-malware-facts-and-faqs"
+  },
+  {
+    "id": 39,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual das seguintes opções é um tipo de ameaça informática?",
+    "opcoes": {
+      "A": "Phishing",
+      "B": "Solicitação",
+      "C": "Ataque DoS",
+      "D": "Nenhuma das acima"
+    },
+    "resposta_correta": "C",
+    "explicacao": "O ataque de Negação de Serviço (DoS) visa inviabilizar a disponibilidade do sistema inundando-o com requisições.",
+    "fonte": "https://www.fortinet.com/br/resources/cyberglossary/network-security-threats"
+  },
+  {
+    "id": 40,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Quem cunhou o termo \"Vírus\" no contexto da computação?",
+    "opcoes": {
+      "A": "Len Adleman",
+      "B": "Carl Pomerance",
+      "C": "Ron Rivest",
+      "D": "John Brunner"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Len Adleman cunhou formalmente o termo acadêmico 'vírus de computador' durante os experimentos de Fred Cohen.",
+    "fonte": "https://www.quora.com/Who-coined-the-term-virus-Pasteur-or-M-W-Beijerinck"
+  },
+  {
+    "id": 41,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "O cursor do mouse na tela do seu computador começa a se mover sozinho e a clicar em itens na sua área de trabalho. O que você faz imediatamente?",
+    "opcoes": {
+      "A": "Chame seus colegas de trabalho para que eles possam ver.",
+      "B": "Contate imediatamente o suporte de TI.",
+      "C": "Desconecte o mouse.",
+      "D": "Desligue o computador."
+    },
+    "resposta_correta": "B",
+    "explicacao": "Indício evidente de controle remoto não autorizado. O suporte de TI deve ser acionado imediatamente e o cabo de rede/Wi-Fi isolado.",
+    "fonte": "https://www.quora.com/The-mouse-on-your-computer-screen-starts-to-move-around-on-its-own-and-click-on-things-on-your-desktop-What-do-you-do"
+  },
+  {
+    "id": 42,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual das seguintes técnicas é mais eficaz na prevenção de ataques Man-in-the-Middle (MitM) durante o processo inicial de troca de chaves em um handshake TLS?",
+    "opcoes": {
+      "A": "Utilizando uma chave pré-compartilhada (PSK) para a troca inicial.",
+      "B": "Implementando o Perfect Forward Secrecy (PFS) com troca de chaves Diffie-Hellman",
+      "C": "Baseando-se na troca de chaves RSA estáticas",
+      "D": "Utilizando certificados digitais assinados por uma Autoridade Certificadora (AC) confiável."
+    },
+    "resposta_correta": "B",
+    "explicacao": "Diffie-Hellman com PFS assegura chaves de sessão efêmeras que impedem a descriptografia de tráfego capturado mesmo em comprometimento de chave de longo prazo.",
+    "fonte": "https://www.bitdefender.com.br/consumer/support/answer/79593/"
+  },
+  {
+    "id": 43,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual dos seguintes departamentos normalmente detém as diretrizes e os procedimentos para o uso seguro de TI dentro de uma organização?",
+    "opcoes": {
+      "A": "O Departamento de TI.",
+      "B": "O Departamento de Marketing.",
+      "C": "O Departamento de Vendas.",
+      "D": "O Departamento de Finanças."
+    },
+    "resposta_correta": "A",
+    "explicacao": "O setor de TI/Segurança da Informação é o responsável institucional pelas políticas e controles de uso seguro de recursos computacionais.",
+    "fonte": "https://www.passeidireto.com/pergunta/135390536/os-departamentos-de-tecnologia-da-informacao-ti-desempenham-um-papel-crucial-no-"
+  },
+  {
+    "id": 44,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual das seguintes opções descreve como descobrir a política de privacidade de uma organização?",
+    "opcoes": {
+      "A": "Ao ler o boletim informativo do escritório.",
+      "B": "Ao ler a política no manual de políticas da organização.",
+      "C": "Ao falar com o Departamento de Finanças.",
+      "D": "Ao falar com o Departamento de Vendas."
+    },
+    "resposta_correta": "B",
+    "explicacao": "As políticas corporativas oficiais de privacidade e conformidade estão compiladas no manual de conduta e governança da instituição.",
+    "fonte": "https://www.totvs.com/blog/gestao-para-assinatura-de-documentos/politica-de-privacidade/"
+  },
+  {
+    "id": 45,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual das seguintes opções descreve por que os usuários devem bloquear o computador ao se afastarem da mesa?",
+    "opcoes": {
+      "A": "Para evitar o acesso não autorizado aos dados.",
+      "B": "Para evitar o desperdício de eletricidade.",
+      "C": "Para evitar que os dados sejam corrompidos.",
+      "D": "Para evitar o mau funcionamento do computador."
+    },
+    "resposta_correta": "A",
+    "explicacao": "O bloqueio de tela impede que terceiros tenham acesso físico e visual direto a sessões autenticadas e dados corporativos.",
+    "fonte": "https://www.totvs.com/blog/gestao-para-assinatura-de-documentos/politica-de-privacidade/"
+  },
+  {
+    "id": 46,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual das seguintes opções é uma razão pela qual os usuários devem fazer login com um nome de usuário e senha?",
+    "opcoes": {
+      "A": "Para estar ciente de quem está no prédio.",
+      "B": "Para verificar o controle do tempo dos usuários.",
+      "C": "Para proteger os computadores contra uso não autorizado.",
+      "D": "Para permitir uma saudação personalizada para cada usuário."
+    },
+    "resposta_correta": "C",
+    "explicacao": "A autenticação garante que apenas indivíduos autorizados acessem as informações e recursos adequados ao seu perfil.",
+    "fonte": "https://www.fortinet.com/br/resources/cyberglossary/login-credentials"
+  },
+  {
+    "id": 47,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual das seguintes opções resultaria na perda dos dados de contato caso o dispositivo fosse roubado?",
+    "opcoes": {
+      "A": "Impressora.",
+      "B": "Celular.",
+      "C": "Modem.",
+      "D": "MP3."
+    },
+    "resposta_correta": "B",
+    "explicacao": "Smartphones armazenam agendas telefônicas, credenciais e bases de contatos locais suscetíveis a furto.",
+    "fonte": "https://tecnoblog.net/responde/como-apagar-dados-celular-roubado-perdido/"
+  },
+  {
+    "id": 48,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual das seguintes opções demonstra respeito pela confidencialidade da informação?",
+    "opcoes": {
+      "A": "Discutir informações confidenciais por telefone.",
+      "B": "Divulgar informações confidenciais apenas a pessoas autorizadas.",
+      "C": "Carregar informações confidenciais em um site compartilhado.",
+      "D": "Enviar informações confidenciais por e-mail a um colega."
+    },
+    "resposta_correta": "B",
+    "explicacao": "O princípio da confidencialidade exige que dados sensíveis sejam revelados exclusivamente a entidades com a devida autorização.",
+    "fonte": "https://www.varitus.com.br/blog/quais-sao-os-4-principios-da-seguranca-da-informacao/"
+  },
+  {
+    "id": 49,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual das seguintes opções descreve o Bluetooth?",
+    "opcoes": {
+      "A": "Protocolo com fio de curto alcance para troca de dados.",
+      "B": "Protocolo sem fio de curto alcance para troca de dados.",
+      "C": "Protocolo sem fio de longo alcance para troca de dados.",
+      "D": "Protocolo com fio de longo alcance para troca de dados."
+    },
+    "resposta_correta": "B",
+    "explicacao": "Bluetooth é uma tecnologia de radiofrequência sem fio desenvolvida especificamente para comunicação em redes pessoais (PAN) de curto alcance.",
+    "fonte": "https://tecnoblog.net/responde/o-que-e-bluetooth/"
+  },
+  {
+    "id": 50,
+    "categoria": "Segurança Cibernética",
+    "pergunta": "Qual das seguintes opções descreve o que você deve fazer se receber um e-mail em cadeia?",
+    "opcoes": {
+      "A": "Encaminhe o e-mail.",
+      "B": "Faça o download para o seu sistema.",
+      "C": "Apague o e-mail.",
+      "D": "Enviar confirmação de leitura."
+    },
+    "resposta_correta": "C",
+    "explicacao": "Correntes devem ser excluídas para mitigar golpes, coleta indevida de dados (harvesting) e congestionamento de servidores corporativos.",
+    "fonte": "https://www.passeidireto.com/pergunta/179167352/voce-recebe-um-e-mail-suspeito-que-voce-acha-que-pode-ser-um-ataque-cibernetico-"
+  },
+  {
+    "id": 51,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que significa a sigla IA?",
+    "opcoes": {
+      "A": "Internet Automatizada",
+      "B": "Inteligência Artificial",
+      "C": "Informação Avançada",
+      "D": "Integração Automática"
+    },
+    "resposta_correta": "B",
+    "explicacao": "IA é a sigla consagrada para Inteligência Artificial.",
+    "fonte": "https://www.ibm.com/br-pt/think/topics/artificial-intelligence"
+  },
+  {
+    "id": 52,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "Qual é um dos principais objetivos da Inteligência Artificial?",
+    "opcoes": {
+      "A": "Simular algumas capacidades da inteligência humana",
+      "B": "Aumentar o tamanho dos computadores",
+      "C": "Substituir a internet",
+      "D": "Criar cabos mais rápidos"
+    },
+    "resposta_correta": "A",
+    "explicacao": "A IA busca desenvolver sistemas computacionais capazes de emular raciocínio, aprendizado e resolução de problemas humanos.",
+    "fonte": "https://azure.microsoft.com/pt-br/resources/cloud-computing-dictionary/what-is-artificial-intelligence"
+  },
+  {
+    "id": 53,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que é Machine Learning?",
+    "opcoes": {
+      "A": "Um sistema operacional",
+      "B": "Um tipo de hardware",
+      "C": "Um ramo da IA que permite aprender padrões a partir de dados",
+      "D": "Um programa de edição de texto"
+    },
+    "resposta_correta": "C",
+    "explicacao": "Machine Learning (Aprendizado de Máquina) foca na criação de algoritmos que aprendem e melhoram seu desempenho a partir de dados.",
+    "fonte": "https://aws.amazon.com/pt/compare/the-difference-between-artificial-intelligence-and-machine-learning/"
+  },
+  {
+    "id": 54,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "Qual destes é um exemplo de aplicação de IA?",
+    "opcoes": {
+      "A": "Reconhecimento de imagens",
+      "B": "Cabo HDMI",
+      "C": "Teclado mecânico",
+      "D": "Pendrive"
+    },
+    "resposta_correta": "A",
+    "explicacao": "A identificação e classificação de padrões em imagens constitui uma área clássica de aplicação de IA.",
+    "fonte": "https://aws.amazon.com/pt/what-is/artificial-intelligence/"
+  },
+  {
+    "id": 55,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que uma IA generativa pode criar?",
+    "opcoes": {
+      "A": "Apenas números",
+      "B": "Apenas arquivos PDF",
+      "C": "Textos, imagens, vídeos e outros conteúdos",
+      "D": "Apenas conexões de internet"
+    },
+    "resposta_correta": "C",
+    "explicacao": "IAs generativas utilizam modelos de aprendizado profundo para sintetizar novos dados textuais, visuais, sonoros e multimodais.",
+    "fonte": "https://www.ibm.com/br-pt/think/topics/generative-ai"
+  },
+  {
+    "id": 56,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "Para que servem os dados no treinamento de uma IA?",
+    "opcoes": {
+      "A": "Para ensinar o modelo a identificar padrões",
+      "B": "Para aumentar o tamanho do computador",
+      "C": "Para substituir o processador",
+      "D": "Para criar uma rede Wi-Fi"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Os conjuntos de dados funcionam como substrato para ajuste de pesos matemáticos e identificação de regularidades estatísticas.",
+    "fonte": "https://cloud.google.com/learn/what-is-artificial-intelligence"
+  },
+  {
+    "id": 57,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "Qual destes exemplos utiliza IA no cotidiano?",
+    "opcoes": {
+      "A": "Recomendações de filmes e músicas",
+      "B": "Cabo de energia",
+      "C": "Tomada elétrica",
+      "D": "Mousepad"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Sistemas de recomendação de plataformas de streaming empregam algoritmos preditivos baseados no histórico do usuário.",
+    "fonte": "https://cloud.google.com/learn/what-is-artificial-intelligence"
+  },
+  {
+    "id": 58,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que é Deep Learning?",
+    "opcoes": {
+      "A": "Um tipo de navegador",
+      "B": "Um subconjunto de Machine Learning baseado em redes neurais de várias camadas",
+      "C": "Um sistema operacional",
+      "D": "Um tipo de banco de dados"
+    },
+    "resposta_correta": "B",
+    "explicacao": "Aprendizado Profundo consiste em redes neurais artificiais profundas com múltiplas camadas ocultas de abstração.",
+    "fonte": "https://www.ibm.com/br-pt/think/topics/deep-learning"
+  },
+  {
+    "id": 59,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "Qual tecnologia é utilizada para permitir que computadores interpretem imagens?",
+    "opcoes": {
+      "A": "Visão computacional",
+      "B": "Bluetooth",
+      "C": "USB",
+      "D": "GPS"
+    },
+    "resposta_correta": "A",
+    "explicacao": "A visão computacional estuda a extração automatizada de significado a partir de imagens e vídeos digitais.",
+    "fonte": "https://www.ibm.com/br-pt/think/machine-learning"
+  },
+  {
+    "id": 60,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que é processamento de linguagem natural (PLN)?",
+    "opcoes": {
+      "A": "Tecnologia para aumentar a memória do computador",
+      "B": "Tecnologia que permite aos computadores processar linguagem humana",
+      "C": "Sistema para armazenar arquivos",
+      "D": "Tecnologia para melhorar a resolução do monitor"
+    },
+    "resposta_correta": "B",
+    "explicacao": "PLN (ou NLP) é a subárea interdisciplinar dedicada à compreensão, interpretação e geração de linguagem humana por software.",
+    "fonte": "https://www.ibm.com/br-pt/think/machine-learning"
+  },
+  {
+    "id": 61,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "Qual destes é um exemplo de assistente virtual que utiliza IA?",
+    "opcoes": {
+      "A": "Alexa",
+      "B": "HDMI",
+      "C": "SSD",
+      "D": "USB"
+    },
+    "resposta_correta": "A",
+    "explicacao": "A Amazon Alexa integra reconhecimento de voz e processamento de linguagem natural.",
+    "fonte": "https://aws.amazon.com/pt/what-is/artificial-intelligence/"
+  },
+  {
+    "id": 62,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que é uma rede neural artificial?",
+    "opcoes": {
+      "A": "Uma rede de internet doméstica",
+      "B": "Um modelo inspirado no funcionamento dos neurônios para processar informações",
+      "C": "Um tipo de cabo",
+      "D": "Um programa antivírus"
+    },
+    "resposta_correta": "B",
+    "explicacao": "Trata-se de uma arquitetura computacional inspirada na estrutura biológica de neurônios para mapear entradas e saídas.",
+    "fonte": "https://aws.amazon.com/pt/what-is/artificial-intelligence/"
+  },
+  {
+    "id": 63,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "Qual é uma possível utilização da IA no setor de saúde?",
+    "opcoes": {
+      "A": "Analisar imagens médicas",
+      "B": "Fabricar tomadas",
+      "C": "Aumentar o tamanho de monitores",
+      "D": "Substituir cabos de rede"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Modelos de IA apoiam a detecção precoce de patologias em exames radiológicos e ressonâncias.",
+    "fonte": "https://www.oracle.com/br/artificial-intelligence/ai-cloud-computing/"
+  },
+  {
+    "id": 64,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que é IA generativa?",
+    "opcoes": {
+      "A": "IA capaz de criar novos conteúdos a partir de solicitações",
+      "B": "Um tipo de memória RAM",
+      "C": "Um sistema de cabeamento",
+      "D": "Um antivírus"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Modelos generativos produzem instâncias inéditas de texto, áudio ou mídia com base em instruções recebidas.",
+    "fonte": "https://www.ibm.com/br-pt/think/topics/generative-ai"
+  },
+  {
+    "id": 65,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que é um prompt em sistemas de IA generativa?",
+    "opcoes": {
+      "A": "Uma solicitação ou instrução fornecida pelo usuário",
+      "B": "Um tipo de processador",
+      "C": "Um arquivo de sistema",
+      "D": "Uma conexão de rede"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Prompt é o texto de entrada ou contexto dado ao modelo para guiar o que ele deve gerar.",
+    "fonte": "https://www.ibm.com/br-pt/think/topics/generative-ai"
+  },
+  {
+    "id": 66,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "Qual destes é um possível benefício da Inteligência Artificial?",
+    "opcoes": {
+      "A": "Automatizar tarefas",
+      "B": "Diminuir fisicamente o computador",
+      "C": "Eliminar todos os dados",
+      "D": "Impedir o acesso à internet"
+    },
+    "resposta_correta": "A",
+    "explicacao": "A automação de fluxos repetitivos é uma das principais contribuições operacionais da IA.",
+    "fonte": "https://www.oracle.com/br/artificial-intelligence/what-is-ai/"
+  },
+  {
+    "id": 67,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que significa dizer que uma IA aprende padrões?",
+    "opcoes": {
+      "A": "Ela identifica relações presentes nos dados para realizar previsões ou decisões",
+      "B": "Ela troca automaticamente o processador",
+      "C": "Ela aumenta a memória física",
+      "D": "Ela instala programas sozinha em qualquer computador"
+    },
+    "resposta_correta": "A",
+    "explicacao": "O aprendizado consiste em ajustar correlações matemáticas a partir de dados históricos para generalizar novas previsões.",
+    "fonte": "https://cloud.google.com/learn/what-is-artificial-intelligence"
+  },
+  {
+    "id": 68,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "Qual destes é um exemplo de IA generativa?",
+    "opcoes": {
+      "A": "Uma ferramenta que gera uma imagem a partir de uma descrição",
+      "B": "Um cabo USB",
+      "C": "Um monitor",
+      "D": "Uma placa de vídeo sem software de IA"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Sistemas de text-to-image exemplificam modelos fundacionais generativos aplicados a síntese de mídia.",
+    "fonte": "https://www.ibm.com/br-pt/think/topics/generative-ai"
+  },
+  {
+    "id": 69,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que é AGI (Inteligência Artificial Geral)?",
+    "opcoes": {
+      "A": "Um tipo de placa de vídeo",
+      "B": "Um conceito de IA com capacidade geral semelhante à inteligência humana",
+      "C": "Um aplicativo de mensagens",
+      "D": "Um sistema de armazenamento"
+    },
+    "resposta_correta": "B",
+    "explicacao": "AGI define o estágio teórico de IA com flexibilidade cognitiva de adaptação e aprendizado em qualquer domínio humano.",
+    "fonte": "https://aws.amazon.com/pt/what-is/artificial-general-intelligence/"
+  },
+  {
+    "id": 70,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "Por que é importante verificar informações produzidas por uma IA?",
+    "opcoes": {
+      "A": "Porque sistemas de IA podem produzir resultados que precisam de avaliação humana",
+      "B": "Porque a IA não consegue processar nenhum texto",
+      "C": "Porque toda resposta de IA é necessariamente falsa",
+      "D": "Porque IA funciona somente sem dados"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Modelos probabilísticos podem alucinar ou propagar inconsistências factuais, exigindo supervisão e validação crítica.",
+    "fonte": "https://www.ibm.com/br-pt/think/topics/artificial-intelligence-business"
+  },
+  {
+    "id": 71,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que é um chatbot?",
+    "opcoes": {
+      "A": "Um programa que conversa com pessoas por texto ou voz",
+      "B": "Um componente físico do computador",
+      "C": "Um tipo de cabo de rede",
+      "D": "Um sistema para imprimir documentos"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Chatbots são agentes de software orientados a manter diálogos interativos com usuários.",
+    "fonte": "https://cloud.google.com/learn/what-is-a-chatbot"
+  },
+  {
+    "id": 72,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que é um algoritmo?",
+    "opcoes": {
+      "A": "Uma sequência de instruções para realizar uma tarefa",
+      "B": "Uma peça usada para conectar computadores",
+      "C": "Um tipo de tela",
+      "D": "Um arquivo de música"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Um algoritmo é uma sequência lógica e finita de passos formulada para executar uma operação específica.",
+    "fonte": "https://www.ibm.com/topics/algorithms"
+  },
+  {
+    "id": 73,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "Qual é a função de um conjunto de dados no desenvolvimento de IA?",
+    "opcoes": {
+      "A": "Fornecer exemplos para analisar ou treinar modelos",
+      "B": "Aumentar o brilho do monitor",
+      "C": "Substituir a bateria",
+      "D": "Conectar o computador à impressora"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Datasets contêm as amostras e atributos a partir dos quais o algoritmo calibra seus pesos.",
+    "fonte": "https://cloud.google.com/learn/what-is-a-dataset"
+  },
+  {
+    "id": 74,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que é reconhecimento facial?",
+    "opcoes": {
+      "A": "Tecnologia que identifica ou verifica pessoas por características do rosto",
+      "B": "Programa para editar textos",
+      "C": "Tipo de armazenamento",
+      "D": "Ferramenta para compactar arquivos"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Aplicação biométrica de visão computacional que mapeia marcos e padrões geométricos da face.",
+    "fonte": "https://azure.microsoft.com/en-us/products/ai-services/ai-face"
+  },
+  {
+    "id": 75,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "Qual área da IA permite que computadores interpretem imagens?",
+    "opcoes": {
+      "A": "Visão computacional",
+      "B": "Planilhas eletrônicas",
+      "C": "Cabeamento estruturado",
+      "D": "Edição de áudio"
+    },
+    "resposta_correta": "A",
+    "explicacao": "A visão computacional estuda a aquisição e o processamento semântico de matrizes de pixels visuais.",
+    "fonte": "https://cloud.google.com/vision"
+  },
+  {
+    "id": 76,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que é um assistente virtual?",
+    "opcoes": {
+      "A": "Software que ajuda o usuário por comandos ou conversas",
+      "B": "Dispositivo usado apenas para armazenar fotos",
+      "C": "Cabo que transmite energia",
+      "D": "Tipo de processador"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Software conversacional concebido para desempenhar tarefas e rotinas baseadas na intenção do usuário.",
+    "fonte": "https://www.amazon.com/alexa"
+  },
+  {
+    "id": 77,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "Qual é um exemplo de uso de IA no comércio eletrônico?",
+    "opcoes": {
+      "A": "Recomendar produtos com base em interesses",
+      "B": "Trocar fisicamente a tela do celular",
+      "C": "Carregar a bateria do computador",
+      "D": "Imprimir etiquetas sem equipamento"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Mecanismos de filtragem colaborativa geram recomendações personalizadas no e-commerce.",
+    "fonte": "https://aws.amazon.com/what-is/recommendation-engine/"
+  },
+  {
+    "id": 78,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que significa viés em um sistema de IA?",
+    "opcoes": {
+      "A": "Uma tendência que pode favorecer ou prejudicar certos resultados",
+      "B": "A velocidade física do computador",
+      "C": "O tamanho do arquivo de treinamento",
+      "D": "A quantidade de teclas do teclado"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Viés algorítmico resulta em disparidades sistemáticas decorrentes de dados de treinamento desequilibrados ou premissas do modelo.",
+    "fonte": "https://www.nist.gov/itl/ai-risk-management-framework"
+  },
+  {
+    "id": 79,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "Por que a qualidade dos dados é importante para uma IA?",
+    "opcoes": {
+      "A": "Dados inadequados podem prejudicar os resultados do sistema",
+      "B": "Dados nunca influenciam o funcionamento da IA",
+      "C": "A qualidade dos dados altera o tamanho do monitor",
+      "D": "Dados servem somente para conectar à internet"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Bases de dados ruidosas ou enviesadas degradam a precisão e a capacidade de generalização do modelo.",
+    "fonte": "https://www.ibm.com/topics/data-quality"
+  },
+  {
+    "id": 80,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que é treinamento de um modelo de IA?",
+    "opcoes": {
+      "A": "Processo em que o modelo ajusta seus parâmetros usando dados",
+      "B": "Processo de instalar um teclado",
+      "C": "Troca de um monitor",
+      "D": "Limpeza física do computador"
+    },
+    "resposta_correta": "A",
+    "explicacao": "O treinamento consiste na otimização dos pesos internos do algoritmo para minimizar a função de perda calculada sobre os dados.",
+    "fonte": "https://cloud.google.com/learn/what-is-machine-learning"
+  },
+  {
+    "id": 81,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que é inferência em Inteligência Artificial?",
+    "opcoes": {
+      "A": "Uso de um modelo treinado para produzir uma previsão ou resultado",
+      "B": "Montagem física de um computador",
+      "C": "Criação de uma senha de Wi-Fi",
+      "D": "Instalação de uma impressora"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Inferência é a etapa de execução onde um modelo já treinado recebe novos dados em tempo real e calcula predições.",
+    "fonte": "https://www.nvidia.com/en-us/glossary/ai-inference/"
+  },
+  {
+    "id": 82,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "Qual é uma aplicação da IA na agricultura?",
+    "opcoes": {
+      "A": "Monitorar plantações e identificar problemas nas culturas",
+      "B": "Substituir toda a água usada na plantação",
+      "C": "Produzir energia sem equipamentos",
+      "D": "Transformar solo em plástico"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Na agricultura de precisão, sensores e visão computacional mapeiam pragas, escassez hídrica e saúde vegetal.",
+    "fonte": "https://www.fao.org/digital-agriculture/en/"
+  },
+  {
+    "id": 83,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "Como a IA pode ajudar no trânsito?",
+    "opcoes": {
+      "A": "Analisando dados para apoiar a previsão e o gerenciamento do tráfego",
+      "B": "Pintando automaticamente todas as ruas",
+      "C": "Eliminando semáforos em qualquer situação",
+      "D": "Fazendo todos os veículos voarem"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Modelos preditivos analisam fluxos de veículos para sincronizar semáforos e otimizar rotas de mobilidade urbana.",
+    "fonte": "https://www.ibm.com/topics/artificial-intelligence"
+  },
+  {
+    "id": 84,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que é um robô autônomo?",
+    "opcoes": {
+      "A": "Robô capaz de executar certas tarefas com pouca intervenção humana",
+      "B": "Computador sem sistema operacional",
+      "C": "Cabo que funciona sem energia",
+      "D": "Programa usado apenas para escrever textos"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Sistemas robóticos autônomos percebem o ambiente via sensores e executam ações planejadas com pouca ou nenhuma intervenção humana direta.",
+    "fonte": "https://www.nasa.gov/technology/robotics/"
+  },
+  {
+    "id": 85,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "Qual é uma função de filtros de spam que usam IA?",
+    "opcoes": {
+      "A": "Identificar mensagens que parecem indesejadas ou suspeitas",
+      "B": "Aumentar o espaço físico da caixa de entrada",
+      "C": "Criar novas contas bancárias",
+      "D": "Consertar a tela do celular"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Classificadores inteligentes analisam termos, remetentes e cabeçalhos para isolar mensagens indesejadas.",
+    "fonte": "https://support.google.com/mail/answer/1366858"
+  },
+  {
+    "id": 86,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que é aprendizado supervisionado?",
+    "opcoes": {
+      "A": "Treinamento com exemplos que incluem respostas ou rótulos conhecidos",
+      "B": "Treinamento sem usar nenhum dado",
+      "C": "Método para resfriar computadores",
+      "D": "Técnica para aumentar a resolução de imagens"
+    },
+    "resposta_correta": "A",
+    "explicacao": "No aprendizado supervisionado, o modelo recebe dados de entrada acompanhados das respectivas saídas esperadas (rótulos).",
+    "fonte": "https://cloud.google.com/learn/what-is-machine-learning"
+  },
+  {
+    "id": 87,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que caracteriza o aprendizado não supervisionado?",
+    "opcoes": {
+      "A": "O modelo procura padrões em dados sem rótulos fornecidos previamente",
+      "B": "O modelo recebe sempre a resposta correta em cada exemplo",
+      "C": "O computador funciona sem eletricidade",
+      "D": "O usuário programa cada resposta manualmente"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Métodos não supervisionados descobrem agrupamentos e estruturas intrínsecas nos dados sem orientação de saídas predefinidas.",
+    "fonte": "https://www.ibm.com/topics/unsupervised-learning"
+  },
+  {
+    "id": 88,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "No aprendizado por reforço, como o sistema aprende?",
+    "opcoes": {
+      "A": "Recebendo recompensas ou penalidades pelas ações",
+      "B": "Lendo somente arquivos de texto",
+      "C": "Copiando a tela de outro computador",
+      "D": "Aumentando a memória RAM"
+    },
+    "resposta_correta": "A",
+    "explicacao": "O agente interage com um ambiente por tentativa e erro, buscando maximizar uma função de recompensa cumulativa.",
+    "fonte": "https://cloud.google.com/discover/what-is-reinforcement-learning"
+  },
+  {
+    "id": 89,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que é um cuidado importante ao usar ferramentas de IA?",
+    "opcoes": {
+      "A": "Conferir informações importantes antes de utilizá-las",
+      "B": "Compartilhar senhas para melhorar as respostas",
+      "C": "Aceitar toda resposta sem verificar",
+      "D": "Enviar dados pessoais sem avaliar a privacidade"
+    },
+    "resposta_correta": "A",
+    "explicacao": "A checagem de fatos e a observância de privacidade evitam a propagação de inconsistências geradas por modelos de linguagem.",
+    "fonte": "https://www.unesco.org/en/artificial-intelligence/recommendation-ethics"
+  },
+  {
+    "id": 90,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que são dados pessoais?",
+    "opcoes": {
+      "A": "Informações relacionadas a uma pessoa identificada ou identificável",
+      "B": "Qualquer programa instalado no computador",
+      "C": "Somente imagens geradas por IA",
+      "D": "Apenas dados armazenados em pen drives"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Conforme diretrizes de privacidade e a LGPD, dados pessoais são dados que tornam um titular identificável direta ou indiretamente.",
+    "fonte": "https://www.gov.br/anpd/pt-br"
+  },
+  {
+    "id": 91,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "Qual é uma possível aplicação da IA na educação?",
+    "opcoes": {
+      "A": "Apoiar atividades de aprendizagem e personalizar exercícios",
+      "B": "Garantir que nenhum aluno precise estudar",
+      "C": "Substituir todas as escolas",
+      "D": "Eliminar professores em qualquer situação"
+    },
+    "resposta_correta": "A",
+    "explicacao": "A IA pode atuar em tutoria inteligente e personalização pedagógica adaptada ao ritmo do estudante.",
+    "fonte": "https://www.unesco.org/en/digital-education/artificial-intelligence"
+  },
+  {
+    "id": 92,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que é tradução automática?",
+    "opcoes": {
+      "A": "Conversão de texto ou fala de um idioma para outro por um sistema",
+      "B": "Transformação de um arquivo em peça física",
+      "C": "Aumento da velocidade da internet",
+      "D": "Criação de uma senha aleatória"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Sistemas computacionais que decodificam sentenças em uma língua-fonte e as expressam sintática e semanticamente em uma língua-alvo.",
+    "fonte": "https://translate.google.com/about/"
+  },
+  {
+    "id": 93,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "Como sistemas de IA podem ajudar pessoas com deficiência visual?",
+    "opcoes": {
+      "A": "Descrevendo imagens ou reconhecendo textos em voz alta",
+      "B": "Aumentando fisicamente o tamanho dos objetos",
+      "C": "Substituindo todos os equipamentos médicos",
+      "D": "Desligando notificações do celular"
+    },
+    "resposta_correta": "A",
+    "explicacao": "A combinação de OCR, visão computacional e síntese de voz (TTS) amplia o acesso descritivo ao conteúdo do ambiente e das telas.",
+    "fonte": "https://www.microsoft.com/en-us/ai/"
+  },
+  {
+    "id": 94,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que é uma deepfake?",
+    "opcoes": {
+      "A": "Conteúdo de áudio, imagem ou vídeo manipulado ou gerado para imitar alguém",
+      "B": "Tipo de cabo de computador",
+      "C": "Cópia de segurança de arquivos",
+      "D": "Programa de planilhas"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Síntese digital hiper-realista que sobrepõe feições, voz ou trejeitos de indivíduos usando redes neurais adversariais e difusão.",
+    "fonte": "https://www.cisa.gov/topics/cyber-threats-and-advisories"
+  },
+  {
+    "id": 95,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "Qual atitude ajuda a identificar uma possível fraude criada com IA?",
+    "opcoes": {
+      "A": "Verificar a origem e confirmar a informação em fontes confiáveis",
+      "B": "Compartilhar imediatamente com todos",
+      "C": "Confiar apenas na aparência do vídeo",
+      "D": "Ignorar qualquer aviso de segurança"
+    },
+    "resposta_correta": "A",
+    "explicacao": "A checagem cruzada de fontes institucionais e canais oficiais atenua o impacto de mídias forjadas.",
+    "fonte": "https://www.cisa.gov/"
+  },
+  {
+    "id": 96,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que é automação com IA?",
+    "opcoes": {
+      "A": "Uso de sistemas inteligentes para executar tarefas com menor intervenção manual",
+      "B": "Troca manual de todas as peças de um computador",
+      "C": "Impressão de documentos sem impressora",
+      "D": "Desligamento permanente da internet"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Integração de modelos cognitivos na execução contínua de procedimentos operacionais e analíticos.",
+    "fonte": "https://www.ibm.com/topics/automation"
+  },
+  {
+    "id": 97,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "Qual é a finalidade de um sistema de recomendação?",
+    "opcoes": {
+      "A": "Sugerir itens ou conteúdos que podem interessar ao usuário",
+      "B": "Apagar automaticamente todos os arquivos",
+      "C": "Aumentar a capacidade física do disco",
+      "D": "Impedir pesquisas na internet"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Prever afinidades entre perfis de consumidores e catálogos de itens para priorizar exibições relevantes.",
+    "fonte": "https://aws.amazon.com/what-is/recommendation-engine/"
+  },
+  {
+    "id": 98,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "O que é um modelo de linguagem?",
+    "opcoes": {
+      "A": "Modelo de IA treinado para processar ou gerar linguagem",
+      "B": "Tipo de teclado",
+      "C": "Equipamento para medir temperatura",
+      "D": "Programa exclusivo para desenhar circuitos"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Redes neurais arquitetadas com mecanismos de atenção (Transformers) para entender e gerar texto natural.",
+    "fonte": "https://cloud.google.com/ai/generative-ai"
+  },
+  {
+    "id": 99,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "Por que a supervisão humana pode ser importante em decisões apoiadas por IA?",
+    "opcoes": {
+      "A": "Para revisar resultados e considerar contexto e consequências",
+      "B": "Porque a IA sempre funciona sem dados",
+      "C": "Para impedir computadores de processar informações",
+      "D": "Porque toda decisão precisa ser aleatória"
+    },
+    "resposta_correta": "A",
+    "explicacao": "O ser humano avalia implicações éticas, nuances contextuais e exceções que algoritmos estritamente estatísticos não captam.",
+    "fonte": "https://www.nist.gov/itl/ai-risk-management-framework"
+  },
+  {
+    "id": 100,
+    "categoria": "Inteligência Artificial",
+    "pergunta": "Qual é uma limitação possível de sistemas de IA generativa?",
+    "opcoes": {
+      "A": "Podem produzir informações incorretas ou inventadas",
+      "B": "Só conseguem responder usando números",
+      "C": "Não conseguem gerar nenhum tipo de texto",
+      "D": "Funcionam apenas desconectados"
+    },
+    "resposta_correta": "A",
+    "explicacao": "Modelos generativos estão sujeitos a alucinações (gerar respostas falsas com alto grau de confiança).",
+    "fonte": "https://blog.google/technology/ai/"
+  }
+]

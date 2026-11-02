@@ -18,9 +18,39 @@
 --    createdb cyberquiz
 --    psql -d cyberquiz -v ON_ERROR_STOP=1 -f 04-ddl.sql
 --
+--  COMO RODAR NO SUPABASE (produção do quiz)
+--    SQL Editor -> cole este arquivo inteiro -> Run
+--    Depois: 07-seed-questoes.sql (perguntas reais)
+--            08-views-api.sql    (views consumidas pela API)
+--
 --  Escopo deste arquivo: apenas esquema e domínio fixo (idiomas).
 --  Categorias, publicadores, fontes, perguntas e alternativas ficam no
---  05-dml-consultas.sql (passo 8).
+--  05-dml-consultas.sql (passo 8, massa de teste da disciplina) e no
+--  07-seed-questoes.sql (carga real usada pelo jogo).
+--
+--  MAPA MER (Chen) -> TABELAS
+--    CATEGORIA   (id_categoria, nome)          -> categoria
+--    PUBLICADOR  (id_publicador, nome)         -> publicador
+--    FONTE       (id_fonte, descricao, url)    -> fonte
+--                 + publicador e idioma  ...... 1:1, viram FK em fonte
+--    IDIOMA      (id_idioma, nome, codigo)     -> idioma (FK em fonte)
+--    PERGUNTA    (id_pergunta, enunciado)      -> pergunta
+--                 + codigo/titulo/explicacao .. atributos extra (RD08/RD09)
+--    ALTERNATIVA (id_alternativa, identificador, texto, correta)
+--                                              -> alternativa
+--    JOGADOR     (id_jogador, nome, email, senha_hash) -> jogador
+--    PONTUACAO   (id_pontuacao, valor_pontos, data_resposta)
+--                                              -> pontuacao
+--
+--    Relacionamentos do MER e como aparecem aqui:
+--      CATEGORIA 1:N PERGUNTA   -> pergunta.id_categoria
+--      FONTE     1:N PERGUNTA   -> pergunta.id_fonte
+--      PUBLICADOR 1:N PERGUNTA  -> fonte.id_publicador (publicador é da fonte)
+--      IDIOMA    1:N PERGUNTA   -> fonte.id_idioma     (idioma é da fonte)
+--      PERGUNTA  1:N ALTERNATIVA-> alternativa.id_pergunta
+--      JOGADOR   1:N PONTUACAO  -> pontuacao.id_jogador
+--      PERGUNTA  1:N PONTUACAO  -> pontuacao.id_pergunta
+--      ALTERNATIVA 1:N PONTUACAO (escolhe) -> pontuacao.id_alternativa
 -- =====================================================================
 
 BEGIN;
@@ -129,7 +159,73 @@ CREATE TABLE jogador (
 );
 
 -- ---------------------------------------------------------------------
--- 5) Índices auxiliares (consultas por relacionamento)
+-- 5) Pontuação
+--    MER corrigido: JOGADOR 1:N PONTUACAO (obtém),
+--                   PERGUNTA 1:N PONTUACAO (gera),
+--                   ALTERNATIVA 1:N PONTUACAO (escolhe).
+--
+--    Cada linha é uma resposta: qual jogador, qual pergunta, qual
+--    alternativa ele escolheu, quantos pontos ganhou e quando respondeu.
+--
+--    Regras do MER implementadas aqui:
+--      * um jogador responde cada pergunta uma única vez
+--        (uq_pontuacao_jogador_pergunta);
+--      * valor_pontos depende da alternativa escolhida ser a correta
+--        (calculado pelo gatilho fn_pontuar_resposta);
+--      * ranking NÃO é tabela: é a soma de valor_pontos por jogador,
+--        entregue pela view vw_ranking (08-views-api.sql).
+-- ---------------------------------------------------------------------
+
+CREATE TABLE pontuacao (
+    id_pontuacao   INTEGER     GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_jogador     INTEGER     NOT NULL,
+    id_pergunta    INTEGER     NOT NULL,
+    id_alternativa INTEGER     NOT NULL,
+    valor_pontos   INTEGER     NOT NULL DEFAULT 0,
+    data_resposta  TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    CONSTRAINT fk_pontuacao_jogador
+        FOREIGN KEY (id_jogador) REFERENCES jogador (id_jogador)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_pontuacao_pergunta
+        FOREIGN KEY (id_pergunta) REFERENCES pergunta (id_pergunta)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_pontuacao_alternativa
+        FOREIGN KEY (id_alternativa) REFERENCES alternativa (id_alternativa),
+    CONSTRAINT uq_pontuacao_jogador_pergunta UNIQUE (id_jogador, id_pergunta),
+    CONSTRAINT ck_pontuacao_valor CHECK (valor_pontos >= 0)
+);
+
+-- O banco calcula a pontuação e recusa combinações impossíveis:
+-- a alternativa escolhida precisa pertencer à pergunta respondida.
+CREATE FUNCTION fn_pontuar_resposta() RETURNS TRIGGER AS $$
+DECLARE
+    v_correta BOOLEAN;
+BEGIN
+    SELECT a.correta
+      INTO v_correta
+      FROM alternativa a
+     WHERE a.id_alternativa = NEW.id_alternativa
+       AND a.id_pergunta    = NEW.id_pergunta;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'A alternativa % nao pertence a pergunta %.',
+                        NEW.id_alternativa, NEW.id_pergunta;
+    END IF;
+
+    -- 10 pontos por acerto, 0 por erro (RA: valor depende de acertar ou não).
+    NEW.valor_pontos  := CASE WHEN v_correta THEN 10 ELSE 0 END;
+    NEW.data_resposta := COALESCE(NEW.data_resposta, now());
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_pontuacao_pontua
+    BEFORE INSERT OR UPDATE ON pontuacao
+    FOR EACH ROW EXECUTE FUNCTION fn_pontuar_resposta();
+
+-- ---------------------------------------------------------------------
+-- 6) Índices auxiliares (consultas por relacionamento)
 -- ---------------------------------------------------------------------
 
 CREATE INDEX idx_fonte_publicador     ON fonte (id_publicador);
@@ -137,9 +233,11 @@ CREATE INDEX idx_fonte_idioma         ON fonte (id_idioma);
 CREATE INDEX idx_pergunta_categoria   ON pergunta (id_categoria);
 CREATE INDEX idx_pergunta_fonte       ON pergunta (id_fonte);
 CREATE INDEX idx_alternativa_pergunta ON alternativa (id_pergunta);
+CREATE INDEX idx_pontuacao_jogador    ON pontuacao (id_jogador);
+CREATE INDEX idx_pontuacao_pergunta   ON pontuacao (id_pergunta);
 
 -- ---------------------------------------------------------------------
--- 6) Regra de negócio: toda pergunta tem pelo menos 2 alternativas e
+-- 7) Regra de negócio: toda pergunta tem pelo menos 2 alternativas e
 --    exatamente 1 correta (RD06).
 --    Verificação no COMMIT, para permitir inserir a pergunta e as suas
 --    alternativas na mesma transação.
@@ -201,7 +299,7 @@ CREATE CONSTRAINT TRIGGER trg_pergunta_valida
     FOR EACH ROW EXECUTE FUNCTION fn_trg_valida_pergunta();
 
 -- ---------------------------------------------------------------------
--- 7) Domínio fixo
+-- 8) Domínio fixo
 --    Idiomas são conjunto pequeno, controlado e reutilizado: entram já no
 --    DDL. As alternativas NÃO têm domínio fixo: cada pergunta tem as suas,
 --    e a quantidade é variável (RD07). Por isso não há INSERT em
