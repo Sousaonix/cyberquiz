@@ -1,0 +1,1219 @@
+-- =====================================================================
+--  CyberQuiz — instalação completa no Supabase (arquivo único)
+--
+--  COMO USAR
+--    1. Supabase -> SQL Editor -> New query
+--    2. Cole este arquivo inteiro e clique em Run (Ctrl+Enter)
+--    3. No fim aparece a conferência: 100 perguntas / 400 alternativas
+--
+--  Este arquivo é GERADO a partir de 04-ddl.sql + 07-seed-questoes.sql +
+--  08-views-api.sql. Se mudar um deles, gere este de novo:
+--      npm run build:sql
+--  Não edite à mão.
+-- =====================================================================
+
+-- ===================== 04-ddl.sql =====================
+-- =====================================================================
+--  CyberQuiz — Passo 7: modelo físico (DDL)
+--  Equipe        : <preencher>
+--  Marco         : M3
+--  SGBD          : PostgreSQL 13+
+--  Justificativa : é o SGBD adotado na disciplina e o que a equipe de
+--                  Aplicativos para Web vai consultar; oferece IDENTITY,
+--                  CHECK/UNIQUE declarativos, índice único parcial e
+--                  gatilhos de restrição adiados, que são o que este
+--                  modelo precisa para garantir um único gabarito.
+--
+--  CONTRATO COM APLICATIVOS PARA WEB
+--  Os nomes de tabela e de coluna abaixo são os acordados com a disciplina
+--  de Web. Alteração posterior exige registro no repositório e aviso à
+--  equipe de Web.
+--
+--  COMO RODAR EM BANCO VAZIO
+--    createdb cyberquiz
+--    psql -d cyberquiz -v ON_ERROR_STOP=1 -f 04-ddl.sql
+--
+--  COMO RODAR NO SUPABASE (produção do quiz)
+--    SQL Editor -> cole este arquivo inteiro -> Run
+--    Depois: 07-seed-questoes.sql (perguntas reais)
+--            08-views-api.sql    (views consumidas pela API)
+--
+--  Escopo deste arquivo: apenas esquema e domínio fixo (idiomas).
+--  Categorias, publicadores, fontes, perguntas e alternativas ficam no
+--  05-dml-consultas.sql (passo 8, massa de teste da disciplina) e no
+--  07-seed-questoes.sql (carga real usada pelo jogo).
+--
+--  MAPA MER (Chen) -> TABELAS
+--    CATEGORIA   (id_categoria, nome)          -> categoria
+--    PUBLICADOR  (id_publicador, nome)         -> publicador
+--    FONTE       (id_fonte, descricao, url)    -> fonte
+--                 + publicador e idioma  ...... 1:1, viram FK em fonte
+--    IDIOMA      (id_idioma, nome, codigo)     -> idioma (FK em fonte)
+--    PERGUNTA    (id_pergunta, enunciado)      -> pergunta
+--                 + codigo/titulo/explicacao .. atributos extra (RD08/RD09)
+--    ALTERNATIVA (id_alternativa, identificador, texto, correta)
+--                                              -> alternativa
+--    JOGADOR     (id_jogador, nome, email, senha_hash) -> jogador
+--    PONTUACAO   (id_pontuacao, valor_pontos, data_resposta)
+--                                              -> pontuacao
+--
+--    Relacionamentos do MER e como aparecem aqui:
+--      CATEGORIA 1:N PERGUNTA   -> pergunta.id_categoria
+--      FONTE     1:N PERGUNTA   -> pergunta.id_fonte
+--      PUBLICADOR 1:N PERGUNTA  -> fonte.id_publicador (publicador é da fonte)
+--      IDIOMA    1:N PERGUNTA   -> fonte.id_idioma     (idioma é da fonte)
+--      PERGUNTA  1:N ALTERNATIVA-> alternativa.id_pergunta
+--      JOGADOR   1:N PONTUACAO  -> pontuacao.id_jogador
+--      PERGUNTA  1:N PONTUACAO  -> pontuacao.id_pergunta
+--      ALTERNATIVA 1:N PONTUACAO (escolhe) -> pontuacao.id_alternativa
+-- =====================================================================
+
+BEGIN;
+
+-- ---------------------------------------------------------------------
+-- 1) Tabelas de apoio
+-- ---------------------------------------------------------------------
+
+CREATE TABLE categoria (
+    id_categoria INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nome         VARCHAR(100) NOT NULL,
+    CONSTRAINT uq_categoria_nome UNIQUE (nome)
+);
+
+CREATE TABLE publicador (
+    id_publicador INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nome          VARCHAR(150) NOT NULL,
+    CONSTRAINT uq_publicador_nome UNIQUE (nome)
+);
+
+CREATE TABLE idioma (
+    id_idioma INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nome      VARCHAR(80) NOT NULL,
+    codigo    VARCHAR(10) NOT NULL,
+    CONSTRAINT uq_idioma_nome   UNIQUE (nome),
+    CONSTRAINT uq_idioma_codigo UNIQUE (codigo)
+);
+
+-- A fonte carrega o publicador e o idioma (RD03 e RD04): uma fonte tem
+-- exatamente um publicador e um idioma; o que se repete entre perguntas
+-- fica cadastrado uma única vez.
+CREATE TABLE fonte (
+    id_fonte      INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    descricao     VARCHAR(250) NOT NULL,
+    url           TEXT,
+    id_publicador INTEGER NOT NULL,
+    id_idioma     INTEGER NOT NULL,
+
+    CONSTRAINT fk_fonte_publicador
+        FOREIGN KEY (id_publicador) REFERENCES publicador (id_publicador),
+    CONSTRAINT fk_fonte_idioma
+        FOREIGN KEY (id_idioma) REFERENCES idioma (id_idioma),
+    -- RD02: a mesma URL não é cadastrada duas vezes.
+    -- NULL é aceito e não conflita (fonte sem endereço, ex.: material impresso).
+    CONSTRAINT uq_fonte_url UNIQUE (url)
+);
+
+-- ---------------------------------------------------------------------
+-- 2) Pergunta
+--    `codigo` preserva o identificador original (RD08: fact-001...).
+--    `titulo`, `enunciado` e `explicacao` são obrigatórios (RD09).
+-- ---------------------------------------------------------------------
+
+CREATE TABLE pergunta (
+    id_pergunta  INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    codigo       VARCHAR(20)  NOT NULL,
+    titulo       VARCHAR(150) NOT NULL,
+    enunciado    TEXT         NOT NULL,
+    explicacao   TEXT         NOT NULL,
+    id_categoria INTEGER      NOT NULL,
+    id_fonte     INTEGER      NOT NULL,
+
+    CONSTRAINT uq_pergunta_codigo UNIQUE (codigo),
+    CONSTRAINT fk_pergunta_categoria
+        FOREIGN KEY (id_categoria) REFERENCES categoria (id_categoria),
+    CONSTRAINT fk_pergunta_fonte
+        FOREIGN KEY (id_fonte) REFERENCES fonte (id_fonte)
+);
+
+-- ---------------------------------------------------------------------
+-- 3) Alternativa
+--    `correta` é o valor lógico da alternativa (RD05) e é o que permite ao
+--    banco dizer se o jogador acertou (RD06/RA04). A quantidade não é fixa:
+--    a pergunta aceita 2, 4 ou mais alternativas sem mudar de estrutura
+--    (RD07).
+-- ---------------------------------------------------------------------
+
+CREATE TABLE alternativa (
+    id_alternativa INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_pergunta    INTEGER     NOT NULL,
+    identificador  VARCHAR(20) NOT NULL,
+    texto          TEXT        NOT NULL,
+    correta        BOOLEAN     NOT NULL DEFAULT FALSE,
+
+    CONSTRAINT fk_alternativa_pergunta
+        FOREIGN KEY (id_pergunta) REFERENCES pergunta (id_pergunta)
+        ON DELETE CASCADE,
+    CONSTRAINT uq_alternativa_identificador
+        UNIQUE (id_pergunta, identificador)
+);
+
+-- No máximo UMA alternativa correta por pergunta.
+CREATE UNIQUE INDEX ux_alternativa_uma_correta
+    ON alternativa (id_pergunta) WHERE correta;
+
+-- ---------------------------------------------------------------------
+-- 4) Jogador (cadastro e login)
+-- ---------------------------------------------------------------------
+
+CREATE TABLE jogador (
+    id_jogador INTEGER      GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nome       VARCHAR(120) NOT NULL,
+    email      VARCHAR(254) NOT NULL,
+    senha_hash TEXT         NOT NULL,
+    CONSTRAINT uq_jogador_email UNIQUE (email)
+);
+
+-- ---------------------------------------------------------------------
+-- 5) Pontuação
+--    MER corrigido: JOGADOR 1:N PONTUACAO (obtém),
+--                   PERGUNTA 1:N PONTUACAO (gera),
+--                   ALTERNATIVA 1:N PONTUACAO (escolhe).
+--
+--    Cada linha é uma resposta: qual jogador, qual pergunta, qual
+--    alternativa ele escolheu, quantos pontos ganhou e quando respondeu.
+--
+--    Regras do MER implementadas aqui:
+--      * um jogador responde cada pergunta uma única vez
+--        (uq_pontuacao_jogador_pergunta);
+--      * valor_pontos depende da alternativa escolhida ser a correta
+--        (calculado pelo gatilho fn_pontuar_resposta);
+--      * ranking NÃO é tabela: é a soma de valor_pontos por jogador,
+--        entregue pela view vw_ranking (08-views-api.sql).
+-- ---------------------------------------------------------------------
+
+CREATE TABLE pontuacao (
+    id_pontuacao   INTEGER     GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_jogador     INTEGER     NOT NULL,
+    id_pergunta    INTEGER     NOT NULL,
+    id_alternativa INTEGER     NOT NULL,
+    valor_pontos   INTEGER     NOT NULL DEFAULT 0,
+    data_resposta  TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    CONSTRAINT fk_pontuacao_jogador
+        FOREIGN KEY (id_jogador) REFERENCES jogador (id_jogador)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_pontuacao_pergunta
+        FOREIGN KEY (id_pergunta) REFERENCES pergunta (id_pergunta)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_pontuacao_alternativa
+        FOREIGN KEY (id_alternativa) REFERENCES alternativa (id_alternativa),
+    CONSTRAINT uq_pontuacao_jogador_pergunta UNIQUE (id_jogador, id_pergunta),
+    CONSTRAINT ck_pontuacao_valor CHECK (valor_pontos >= 0)
+);
+
+-- O banco calcula a pontuação e recusa combinações impossíveis:
+-- a alternativa escolhida precisa pertencer à pergunta respondida.
+CREATE FUNCTION fn_pontuar_resposta() RETURNS TRIGGER AS $$
+DECLARE
+    v_correta BOOLEAN;
+BEGIN
+    SELECT a.correta
+      INTO v_correta
+      FROM alternativa a
+     WHERE a.id_alternativa = NEW.id_alternativa
+       AND a.id_pergunta    = NEW.id_pergunta;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'A alternativa % nao pertence a pergunta %.',
+                        NEW.id_alternativa, NEW.id_pergunta;
+    END IF;
+
+    -- 10 pontos por acerto, 0 por erro (RA: valor depende de acertar ou não).
+    NEW.valor_pontos  := CASE WHEN v_correta THEN 10 ELSE 0 END;
+    NEW.data_resposta := COALESCE(NEW.data_resposta, now());
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_pontuacao_pontua
+    BEFORE INSERT OR UPDATE ON pontuacao
+    FOR EACH ROW EXECUTE FUNCTION fn_pontuar_resposta();
+
+-- ---------------------------------------------------------------------
+-- 6) Índices auxiliares (consultas por relacionamento)
+-- ---------------------------------------------------------------------
+
+CREATE INDEX idx_fonte_publicador     ON fonte (id_publicador);
+CREATE INDEX idx_fonte_idioma         ON fonte (id_idioma);
+CREATE INDEX idx_pergunta_categoria   ON pergunta (id_categoria);
+CREATE INDEX idx_pergunta_fonte       ON pergunta (id_fonte);
+CREATE INDEX idx_alternativa_pergunta ON alternativa (id_pergunta);
+CREATE INDEX idx_pontuacao_jogador    ON pontuacao (id_jogador);
+CREATE INDEX idx_pontuacao_pergunta   ON pontuacao (id_pergunta);
+
+-- ---------------------------------------------------------------------
+-- 7) Regra de negócio: toda pergunta tem pelo menos 2 alternativas e
+--    exatamente 1 correta (RD06).
+--    Verificação no COMMIT, para permitir inserir a pergunta e as suas
+--    alternativas na mesma transação.
+-- ---------------------------------------------------------------------
+
+CREATE FUNCTION fn_checar_gabarito(p_id INT) RETURNS VOID AS $$
+DECLARE
+    v_total    INT;
+    v_corretas INT;
+BEGIN
+    -- pergunta já removida (DELETE em cascata): nada a validar
+    IF NOT EXISTS (SELECT 1 FROM pergunta WHERE id_pergunta = p_id) THEN
+        RETURN;
+    END IF;
+
+    SELECT COUNT(*), COUNT(*) FILTER (WHERE correta)
+      INTO v_total, v_corretas
+      FROM alternativa
+     WHERE id_pergunta = p_id;
+
+    IF v_total < 2 THEN
+        RAISE EXCEPTION 'Pergunta % possui % alternativa(s); o minimo e 2.', p_id, v_total;
+    END IF;
+
+    IF v_corretas <> 1 THEN
+        RAISE EXCEPTION 'Pergunta % possui % alternativa(s) correta(s); deve haver exatamente 1.',
+                        p_id, v_corretas;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION fn_trg_valida_alternativa() RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('UPDATE', 'DELETE') THEN
+        PERFORM fn_checar_gabarito(OLD.id_pergunta);
+    END IF;
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        PERFORM fn_checar_gabarito(NEW.id_pergunta);
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION fn_trg_valida_pergunta() RETURNS TRIGGER AS $$
+BEGIN
+    PERFORM fn_checar_gabarito(NEW.id_pergunta);
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE CONSTRAINT TRIGGER trg_alternativa_valida
+    AFTER INSERT OR UPDATE OR DELETE ON alternativa
+    DEFERRABLE INITIALLY DEFERRED
+    FOR EACH ROW EXECUTE FUNCTION fn_trg_valida_alternativa();
+
+CREATE CONSTRAINT TRIGGER trg_pergunta_valida
+    AFTER INSERT ON pergunta
+    DEFERRABLE INITIALLY DEFERRED
+    FOR EACH ROW EXECUTE FUNCTION fn_trg_valida_pergunta();
+
+-- ---------------------------------------------------------------------
+-- 8) Domínio fixo
+--    Idiomas são conjunto pequeno, controlado e reutilizado: entram já no
+--    DDL. As alternativas NÃO têm domínio fixo: cada pergunta tem as suas,
+--    e a quantidade é variável (RD07). Por isso não há INSERT em
+--    `alternativa` neste arquivo.
+-- ---------------------------------------------------------------------
+
+INSERT INTO idioma (nome, codigo) VALUES
+    ('Português', 'pt'),
+    ('Inglês',    'en'),
+    ('Espanhol',  'es');
+
+COMMIT;
+
+
+-- ===================== 07-seed-questoes.sql =====================
+-- =====================================================================
+--  CyberQuiz — Passo 10: carga das perguntas reais (Supabase / PostgreSQL)
+--  Rode DEPOIS do 04-ddl.sql:
+--    04-ddl.sql  ->  cria o esquema
+--    07-seed-questoes.sql -> carrega categorias, publicadores, fontes,
+--                            perguntas e alternativas (este arquivo)
+--    08-views-api.sql -> cria as views que a API consome
+--
+--  De onde vem este conteudo?
+--    Gerado a partir de questoes.json (o mesmo arquivo que o frontend usa),
+--    para o banco e o jogo falarem exatamente a mesma lingua.
+--    100 perguntas / 2 categorias / 88 fontes / 400 alternativas.
+--
+--  Observacoes de modelagem
+--    * `pergunta.codigo` guarda o id original do JSON (q001..q100).
+--    * `fonte.url` e UNIQUE no 04-ddl.sql: 8 URLs se repetem entre perguntas,
+--      por isso 100 perguntas apontam para 88 fontes (normalizacao).
+--    * `alternativa.correta` marca a unica alternativa certa de cada pergunta
+--      (o MER corrigido pede exatamente 1 correta e no minimo 4 alternativas).
+--    * O arquivo 05-dml-consultas.sql e a massa de teste da disciplina de
+--      Banco de Dados. NAO rode ele no Supabase: ele criaria perguntas de
+--      exemplo no meio das perguntas reais.
+--
+--  Pode rodar mais de uma vez: os INSERTs usam ON CONFLICT DO NOTHING.
+-- =====================================================================
+
+BEGIN;
+
+-- ---------------------------------------------------------------------
+-- 1) Categorias (MER: CATEGORIA 1:N PERGUNTA)
+-- ---------------------------------------------------------------------
+INSERT INTO categoria (nome) VALUES
+    ('Inteligência Artificial'),
+    ('Segurança Cibernética')
+ON CONFLICT (nome) DO NOTHING;
+
+-- ---------------------------------------------------------------------
+-- 2) Publicadores (MER: PUBLICADOR 1:N PERGUNTA, via fonte)
+-- ---------------------------------------------------------------------
+INSERT INTO publicador (nome) VALUES
+    ('AWS'),
+    ('Akamai'),
+    ('Alares Internet'),
+    ('Amazon'),
+    ('Bitdefender'),
+    ('CISA'),
+    ('Cidadania Ativa (UFF)'),
+    ('Cloudflare'),
+    ('Deel'),
+    ('Dell'),
+    ('FAO'),
+    ('Fortinet'),
+    ('GTA/UFRJ'),
+    ('Google'),
+    ('Google Cloud'),
+    ('Governo Federal (gov.br)'),
+    ('IBM'),
+    ('Kaspersky'),
+    ('LinkedIn'),
+    ('McAfee'),
+    ('Meu Guru'),
+    ('Microsoft'),
+    ('Microsoft Azure'),
+    ('NASA'),
+    ('NIH (PMC)'),
+    ('NIST'),
+    ('NVIDIA'),
+    ('Oracle'),
+    ('Palo Alto Networks'),
+    ('Passei Direto'),
+    ('Proofpoint'),
+    ('QConcursos'),
+    ('Quora'),
+    ('Redscan'),
+    ('Sony'),
+    ('Sophos'),
+    ('TOTVS'),
+    ('TP-Link'),
+    ('Tecnoblog'),
+    ('UNESCO'),
+    ('Valid Certificadora'),
+    ('Varitus'),
+    ('wikiHow')
+ON CONFLICT (nome) DO NOTHING;
+
+-- ---------------------------------------------------------------------
+-- 3) Fontes (MER: FONTE carrega o publicador e o idioma)
+--    Uma linha por URL distinta; 100 perguntas reaproveitam as 88 fontes.
+-- ---------------------------------------------------------------------
+INSERT INTO fonte (descricao, url, id_publicador, id_idioma)
+SELECT v.descricao, v.url, p.id_publicador, i.id_idioma
+FROM (VALUES
+    ('VPN', 'https://aws.amazon.com/pt/what-is/vpn/', 'AWS', 'pt'),
+    ('Hide files in cmd', 'https://www.wikihow.com/Hide-Files-in-Cmd', 'wikiHow', 'en'),
+    ('Computer networking', 'https://aws.amazon.com/pt/what-is/computer-networking/', 'AWS', 'pt'),
+    ('Worm virus', 'https://www.fortinet.com/br/resources/cyberglossary/worm-virus', 'Fortinet', 'en'),
+    ('Threat reference — Sandbox', 'https://www.proofpoint.com/us/threat-reference/sandbox', 'Proofpoint', 'en'),
+    ('Firewall', 'https://www.fortinet.com/br/resources/cyberglossary/firewall', 'Fortinet', 'en'),
+    ('Ebook 5 step ransomware defense ebook', 'https://www.akamai.com/lp/ebook/ebook-5-step-ransomware-defense-ebook', 'Akamai', 'en'),
+    ('Bots — How captchas work', 'https://www.cloudflare.com/pt-br/learning/bots/how-captchas-work/', 'Cloudflare', 'pt'),
+    ('Grupos vulneraveis', 'https://cidadaniaativa.uff.br/2024/06/11/grupos-vulneraveis/', 'Cidadania Ativa (UFF)', 'pt'),
+    ('Página consultada — Quora', 'https://www.quora.com/What-is-called-a-group-of-computers-that-is-networked-together-and-used-by-hackers-to-steal-information', 'Quora', 'en'),
+    ('Questoes de concursos — Questoes', 'https://www.qconcursos.com/questoes-de-concursos/questoes/ffc72350-56', 'QConcursos', 'en'),
+    ('Glossary — What is DDOS', 'https://www.akamai.com/pt/glossary/what-is-ddos', 'Akamai', 'pt'),
+    ('Cyberpedia — What is spyware', 'https://www.paloaltonetworks.com.br/cyberpedia/what-is-spyware', 'Palo Alto Networks', 'pt'),
+    ('Electronics', 'https://www.sony.com.br/electronics/support/articles/00009475', 'Sony', 'pt'),
+    ('Grad', 'https://www.gta.ufrj.br/grad/16_2_v1/2016IDS/conceituacao.html', 'GTA/UFRJ', 'pt'),
+    ('Access management — What is SSH', 'https://www.cloudflare.com/learning/access-management/what-is-ssh/', 'Cloudflare', 'en'),
+    ('Types of cyber attacks', 'https://www.fortinet.com/br/resources/cyberglossary/types-of-cyber-attacks', 'Fortinet', 'en'),
+    ('Página consultada — Redscan', 'https://www.redscan.com/news/types-of-pen-testing-white-box-black-box-and-everything-in-between/', 'Redscan', 'en'),
+    ('Consumer', 'https://www.bitdefender.com.br/consumer/support/answer/106665/', 'Bitdefender', 'pt'),
+    ('Questoes de concursos — Questoes', 'https://www.qconcursos.com/questoes-de-concursos/questoes/8268fc45-a3', 'QConcursos', 'en'),
+    ('Página consultada — TP-Link', 'https://www.tp-link.com/br/support/faq/1384/', 'TP-Link', 'en'),
+    ('Aix', 'https://www.ibm.com/docs/pt-br/aix/7.3.0?topic=algorithm-password-hashing-algorithms', 'IBM', 'pt'),
+    ('Cyberpedia — Types of firewalls', 'https://www.paloaltonetworks.com.br/cyberpedia/types-of-firewalls', 'Palo Alto Networks', 'pt'),
+    ('Password cracking', 'https://www.deel.com/blog/password-cracking/', 'Deel', 'en'),
+    ('Página consultada — Passei Direto', 'https://www.passeidireto.com/es/question/200396892/qual-das-seguintes-opcoes-e-considerada-uma-ameaca-comum-no-ciberespaco-a-ataque', 'Passei Direto', 'en'),
+    ('Definitions — Wireless protected access 2', 'https://www.kaspersky.com.br/resource-center/definitions/wireless-protected-access-2', 'Kaspersky', 'pt'),
+    ('Intrusion prevention system', 'https://www.ibm.com/br-pt/think/topics/intrusion-prevention-system', 'IBM', 'pt'),
+    ('Cryptography types', 'https://www.ibm.com/br-pt/think/topics/cryptography-types', 'IBM', 'pt'),
+    ('Kbdoc — Pt pt', 'https://www.dell.com/support/kbdoc/pt-pt/000132699/quais-s%C3%A3o-os-diferentes-tipos-de-v%C3%ADrus-spyware-e-malware-que-podem-infectar-meu-computador', 'Dell', 'pt'),
+    ('Learning', 'https://www.linkedin.com/learning/nocoes-basicas-de-seguranca-da-microsoft-conceitos-solucoes-e-seguranca-com-tecnologia-de-ia/funcoes-e-controle-de-acesso-rbac-no-microsoft-entra', 'LinkedIn', 'en'),
+    ('Seguranca na internet — 15 dicas para senhas mais seguras', 'https://www.mcafee.com/blogs/pt-br/seguranca-na-internet/15-dicas-para-senhas-mais-seguras/', 'McAfee', 'pt'),
+    ('How to deal with email phishing', 'https://www.kaspersky.com.br/blog/how-to-deal-with-email-phishing/24081/', 'Kaspersky', 'pt'),
+    ('Cybersecurity explained — Antivirus', 'https://www.sophos.com/pt-br/cybersecurity-explained/antivirus', 'Sophos', 'pt'),
+    ('Blogs — Tecnologia', 'https://validcertificadora.com.br/blogs/tecnologia/e-mail-corporativo-10-boas-praticas-a-serem-seguidas-por-funcionarios', 'Valid Certificadora', 'pt'),
+    ('Seguranca digital — Melhor antivirus', 'https://www.alaresinternet.com.br/indoalem/seguranca-digital/melhor-antivirus/', 'Alares Internet', 'pt'),
+    ('Página consultada — NIH (PMC)', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC7148619/', 'NIH (PMC)', 'en'),
+    ('Pergunta — Estudos gerais', 'https://www.meuguru.com/guru-ia/pergunta/estudos-gerais/7-sobre-a-comunicacao-por-e-mail-no-ambiente-corporativo,-classifique-como-verdadeira-v-ou-falsa-8znPhskQa', 'Meu Guru', 'en'),
+    ('Threats — Computer viruses and malware facts and faqs', 'https://www.kaspersky.com.br/resource-center/threats/computer-viruses-and-malware-facts-and-faqs', 'Kaspersky', 'pt'),
+    ('Network security threats', 'https://www.fortinet.com/br/resources/cyberglossary/network-security-threats', 'Fortinet', 'en'),
+    ('Página consultada — Quora', 'https://www.quora.com/Who-coined-the-term-virus-Pasteur-or-M-W-Beijerinck', 'Quora', 'en'),
+    ('Página consultada — Quora', 'https://www.quora.com/The-mouse-on-your-computer-screen-starts-to-move-around-on-its-own-and-click-on-things-on-your-desktop-What-do-you-do', 'Quora', 'en'),
+    ('Consumer', 'https://www.bitdefender.com.br/consumer/support/answer/79593/', 'Bitdefender', 'pt'),
+    ('Pergunta', 'https://www.passeidireto.com/pergunta/135390536/os-departamentos-de-tecnologia-da-informacao-ti-desempenham-um-papel-crucial-no-', 'Passei Direto', 'en'),
+    ('Gestao para assinatura de documentos — Politica de privacidade', 'https://www.totvs.com/blog/gestao-para-assinatura-de-documentos/politica-de-privacidade/', 'TOTVS', 'en'),
+    ('Login credentials', 'https://www.fortinet.com/br/resources/cyberglossary/login-credentials', 'Fortinet', 'en'),
+    ('Responde — Como apagar dados celular roubado perdido', 'https://tecnoblog.net/responde/como-apagar-dados-celular-roubado-perdido/', 'Tecnoblog', 'en'),
+    ('Página consultada — Varitus', 'https://www.varitus.com.br/blog/quais-sao-os-4-principios-da-seguranca-da-informacao/', 'Varitus', 'pt'),
+    ('Responde — O que e bluetooth', 'https://tecnoblog.net/responde/o-que-e-bluetooth/', 'Tecnoblog', 'en'),
+    ('Pergunta', 'https://www.passeidireto.com/pergunta/179167352/voce-recebe-um-e-mail-suspeito-que-voce-acha-que-pode-ser-um-ataque-cibernetico-', 'Passei Direto', 'en'),
+    ('Artificial intelligence', 'https://www.ibm.com/br-pt/think/topics/artificial-intelligence', 'IBM', 'pt'),
+    ('Cloud computing dictionary — What is artificial intelligence', 'https://azure.microsoft.com/pt-br/resources/cloud-computing-dictionary/what-is-artificial-intelligence', 'Microsoft Azure', 'pt'),
+    ('Compare', 'https://aws.amazon.com/pt/compare/the-difference-between-artificial-intelligence-and-machine-learning/', 'AWS', 'pt'),
+    ('Artificial intelligence', 'https://aws.amazon.com/pt/what-is/artificial-intelligence/', 'AWS', 'pt'),
+    ('Generative AI', 'https://www.ibm.com/br-pt/think/topics/generative-ai', 'IBM', 'pt'),
+    ('What is artificial intelligence', 'https://cloud.google.com/learn/what-is-artificial-intelligence', 'Google Cloud', 'en'),
+    ('Deep learning', 'https://www.ibm.com/br-pt/think/topics/deep-learning', 'IBM', 'pt'),
+    ('Machine learning', 'https://www.ibm.com/br-pt/think/machine-learning', 'IBM', 'pt'),
+    ('Artificial intelligence — AI cloud computing', 'https://www.oracle.com/br/artificial-intelligence/ai-cloud-computing/', 'Oracle', 'en'),
+    ('Artificial intelligence — What is AI', 'https://www.oracle.com/br/artificial-intelligence/what-is-ai/', 'Oracle', 'en'),
+    ('Artificial general intelligence', 'https://aws.amazon.com/pt/what-is/artificial-general-intelligence/', 'AWS', 'pt'),
+    ('Artificial intelligence business', 'https://www.ibm.com/br-pt/think/topics/artificial-intelligence-business', 'IBM', 'pt'),
+    ('What is a chatbot', 'https://cloud.google.com/learn/what-is-a-chatbot', 'Google Cloud', 'en'),
+    ('Algorithms', 'https://www.ibm.com/topics/algorithms', 'IBM', 'en'),
+    ('What is a dataset', 'https://cloud.google.com/learn/what-is-a-dataset', 'Google Cloud', 'en'),
+    ('AI services — AI face', 'https://azure.microsoft.com/en-us/products/ai-services/ai-face', 'Microsoft Azure', 'en'),
+    ('Vision', 'https://cloud.google.com/vision', 'Google Cloud', 'en'),
+    ('Alexa', 'https://www.amazon.com/alexa', 'Amazon', 'en'),
+    ('Recommendation engine', 'https://aws.amazon.com/what-is/recommendation-engine/', 'AWS', 'en'),
+    ('AI risk management framework', 'https://www.nist.gov/itl/ai-risk-management-framework', 'NIST', 'en'),
+    ('Data quality', 'https://www.ibm.com/topics/data-quality', 'IBM', 'en'),
+    ('What is machine learning', 'https://cloud.google.com/learn/what-is-machine-learning', 'Google Cloud', 'en'),
+    ('Glossary — AI inference', 'https://www.nvidia.com/en-us/glossary/ai-inference/', 'NVIDIA', 'en'),
+    ('Digital agriculture', 'https://www.fao.org/digital-agriculture/en/', 'FAO', 'en'),
+    ('Artificial intelligence', 'https://www.ibm.com/topics/artificial-intelligence', 'IBM', 'en'),
+    ('Technology — Robotics', 'https://www.nasa.gov/technology/robotics/', 'NASA', 'en'),
+    ('Mail', 'https://support.google.com/mail/answer/1366858', 'Google', 'en'),
+    ('Unsupervised learning', 'https://www.ibm.com/topics/unsupervised-learning', 'IBM', 'en'),
+    ('Discover — What is reinforcement learning', 'https://cloud.google.com/discover/what-is-reinforcement-learning', 'Google Cloud', 'en'),
+    ('Artificial intelligence — Recommendation ethics', 'https://www.unesco.org/en/artificial-intelligence/recommendation-ethics', 'UNESCO', 'en'),
+    ('Anpd', 'https://www.gov.br/anpd/pt-br', 'Governo Federal (gov.br)', 'pt'),
+    ('Digital education — Artificial intelligence', 'https://www.unesco.org/en/digital-education/artificial-intelligence', 'UNESCO', 'en'),
+    ('About', 'https://translate.google.com/about/', 'Google', 'en'),
+    ('Página consultada — Microsoft', 'https://www.microsoft.com/en-us/ai/', 'Microsoft', 'en'),
+    ('Cyber threats and advisories', 'https://www.cisa.gov/topics/cyber-threats-and-advisories', 'CISA', 'en'),
+    ('Página consultada — CISA', 'https://www.cisa.gov/', 'CISA', 'en'),
+    ('Automation', 'https://www.ibm.com/topics/automation', 'IBM', 'en'),
+    ('Generative AI', 'https://cloud.google.com/ai/generative-ai', 'Google Cloud', 'en'),
+    ('Technology', 'https://blog.google/technology/ai/', 'Google', 'en')
+) AS v(descricao, url, publicador, idioma)
+JOIN publicador p ON p.nome   = v.publicador
+JOIN idioma     i ON i.codigo = v.idioma
+ON CONFLICT (url) DO NOTHING;
+
+-- ---------------------------------------------------------------------
+-- 4) Perguntas (MER: PERGUNTA -> categoria, fonte)
+--    `titulo` nao existe no MER; e um recorte do enunciado (limite de 150
+--    caracteres da coluna) para manter o NOT NULL do 04-ddl.sql.
+-- ---------------------------------------------------------------------
+INSERT INTO pergunta (codigo, titulo, enunciado, explicacao, id_categoria, id_fonte)
+SELECT v.codigo, v.titulo, v.enunciado, v.explicacao, c.id_categoria, f.id_fonte
+FROM (VALUES
+    ('q001', 'Qual é o principal objetivo de uma VPN (Rede Virtual Privada) em segurança cibernética?', 'Qual é o principal objetivo de uma VPN (Rede Virtual Privada) em segurança cibernética?', 'O principal objetivo de uma VPN é criptografar e proteger a comunicação pela internet.', 'Segurança Cibernética', 'https://aws.amazon.com/pt/what-is/vpn/'),
+    ('q002', 'Qual comando pode ser usado no prompt de comando do DOS ou do Windows para ocultar arquivos?', 'Qual comando pode ser usado no prompt de comando do DOS ou do Windows para ocultar arquivos?', 'O comando ''attrib +h [arquivo/diretório]'' ativa os atributos ocultos, ocultando-os.', 'Segurança Cibernética', 'https://www.wikihow.com/Hide-Files-in-Cmd'),
+    ('q003', 'O que é uma rede de computadores?', 'O que é uma rede de computadores?', 'Uma rede de computadores é um conjunto de computadores conectados entre si com o objetivo de compartilhar recursos.', 'Segurança Cibernética', 'https://aws.amazon.com/pt/what-is/computer-networking/'),
+    ('q004', 'O que é um worm que afeta servidores SQL?', 'O que é um worm que afeta servidores SQL?', 'O SQL Slammer é um worm de computador que causou uma negação de serviço em alguns servidores da Internet e reduziu drasticamente o tráfego geral da Internet.', 'Segurança Cibernética', 'https://www.fortinet.com/br/resources/cyberglossary/worm-virus'),
+    ('q005', 'Qual é o principal objetivo de um "sandbox" em segurança cibernética?', 'Qual é o principal objetivo de um "sandbox" em segurança cibernética?', 'Isolar e executar arquivos, programas ou códigos suspeitos em um ambiente seguro e controlado para analisar seu comportamento sem colocar em risco a rede ou o sistema operacional principal.', 'Segurança Cibernética', 'https://www.proofpoint.com/us/threat-reference/sandbox'),
+    ('q006', 'O que significa o termo "firewall" em segurança cibernética?', 'O que significa o termo "firewall" em segurança cibernética?', 'É uma barreira de segurança que monitora e controla o tráfego de dados entre uma rede interna confiável e redes externas não seguras, como a internet.', 'Segurança Cibernética', 'https://www.fortinet.com/br/resources/cyberglossary/firewall'),
+    ('q007', 'Que tipo de software infecta uma máquina, bloqueia os arquivos e depois pede dinheiro?', 'Que tipo de software infecta uma máquina, bloqueia os arquivos e depois pede dinheiro?', 'Ransomware é um tipo de malware malicioso que ameaça publicar os dados da vítima ou bloquear permanentemente o acesso a eles, a menos que um resgate seja pago.', 'Segurança Cibernética', 'https://www.akamai.com/lp/ebook/ebook-5-step-ransomware-defense-ebook'),
+    ('q008', 'Qual é a finalidade de um CAPTCHA na segurança online?', 'Qual é a finalidade de um CAPTCHA na segurança online?', 'O objetivo do CAPTCHA na segurança online é impedir bots automatizados.', 'Segurança Cibernética', 'https://www.cloudflare.com/pt-br/learning/bots/how-captchas-work/'),
+    ('q009', 'Qual desses grupos explora vulnerabilidades?', 'Qual desses grupos explora vulnerabilidades?', 'Governos, criminosos e hacktivistas podem explorar sua rede.', 'Segurança Cibernética', 'https://cidadaniaativa.uff.br/2024/06/11/grupos-vulneraveis/'),
+    ('q010', 'Como se chama um grupo de computadores interligados em rede e usados por hackers para roubar informações?', 'Como se chama um grupo de computadores interligados em rede e usados por hackers para roubar informações?', 'Uma botnet é uma coleção de dispositivos conectados à internet, que podem incluir PCs, servidores, dispositivos móveis e dispositivos IoT, infectados e controlados por um malware comum.', 'Segurança Cibernética', 'https://www.quora.com/What-is-called-a-group-of-computers-that-is-networked-together-and-used-by-hackers-to-steal-information'),
+    ('q011', 'Qual das seguintes opções descreve a criptografia de chave assimétrica?', 'Qual das seguintes opções descreve a criptografia de chave assimétrica?', 'A criptografia de chave assimétrica utiliza um par de chaves composto por uma chave privada para assinatura e uma chave pública para verificação.', 'Segurança Cibernética', 'https://www.qconcursos.com/questoes-de-concursos/questoes/ffc72350-56'),
+    ('q012', 'Qual das seguintes opções é um ataque DoS?', 'Qual das seguintes opções é um ataque DoS?', 'Bombardear continuamente uma rede alvo com solicitações falsas é uma forma de ataque de negação de serviço (DoS), sobrecarregando o sistema.', 'Segurança Cibernética', 'https://www.akamai.com/pt/glossary/what-is-ddos'),
+    ('q013', 'Qual das seguintes opções descreve um software de monitoramento instalado sem o seu consentimento?', 'Qual das seguintes opções descreve um software de monitoramento instalado sem o seu consentimento?', 'Spyware é um software instalado sem consentimento focado principalmente em coletar secretamente informações sobre o usuário.', 'Segurança Cibernética', 'https://www.paloaltonetworks.com.br/cyberpedia/what-is-spyware'),
+    ('q014', 'Qual das seguintes opções oferece a criptografia de sinal sem fio mais forte?', 'Qual das seguintes opções oferece a criptografia de sinal sem fio mais forte?', 'O WPA oferece criptografia e autenticação aprimoradas em comparação com o WEP entre as opções disponíveis.', 'Segurança Cibernética', 'https://www.sony.com.br/electronics/support/articles/00009475'),
+    ('q015', 'Um evento que sinaliza a um IDS para gerar um alarme quando nenhum ataque ocorreu seria classificado como qual das seguintes opções?', 'Um evento que sinaliza a um IDS para gerar um alarme quando nenhum ataque ocorreu seria classificado como qual das seguintes opções?', 'Um falso positivo ocorre quando um evento é erroneamente identificado como um ataque por um IDS sem que nenhum ataque real tenha ocorrido.', 'Segurança Cibernética', 'https://www.gta.ufrj.br/grad/16_2_v1/2016IDS/conceituacao.html'),
+    ('q016', 'Qual dos protocolos a seguir é um protocolo de acesso remoto seguro?', 'Qual dos protocolos a seguir é um protocolo de acesso remoto seguro?', 'SSH e Telnet são protocolos de acesso remoto, mas apenas o SSH é criptografado.', 'Segurança Cibernética', 'https://www.cloudflare.com/learning/access-management/what-is-ssh/'),
+    ('q017', 'Qual dos seguintes ataques requer que um arquivo portador se autorreplique?', 'Qual dos seguintes ataques requer que um arquivo portador se autorreplique?', 'Vírus normalmente precisam de um arquivo hospedeiro para se anexarem e se propagarem, ao contrário de worms.', 'Segurança Cibernética', 'https://www.fortinet.com/br/resources/cyberglossary/types-of-cyber-attacks'),
+    ('q018', 'Qual dos seguintes testes fornece pouca ou nenhuma informação sobre o sistema ao testador de penetração?', 'Qual dos seguintes testes fornece pouca ou nenhuma informação sobre o sistema ao testador de penetração?', 'No teste de caixa preta (black box), o testador atua sem conhecimento prévio ou documentação do sistema.', 'Segurança Cibernética', 'https://www.redscan.com/news/types-of-pen-testing-white-box-black-box-and-everything-in-between/'),
+    ('q019', 'Alguém que se faz passar por um técnico de TI solicita informações sobre a configuração do seu computador. Que tipo de ataque é esse?', 'Alguém que se faz passar por um técnico de TI solicita informações sobre a configuração do seu computador. Que tipo de ataque é esse?', 'Trata-se de engenharia social, pois explora a psicologia e a confiança humana mediante personificação para obter dados confidenciais.', 'Segurança Cibernética', 'https://www.bitdefender.com.br/consumer/support/answer/106665/'),
+    ('q020', 'Um site de rede que aparenta conter informações valiosas, mas que está isolado e monitorado, constitui que tipo de medida de segurança?', 'Um site de rede que aparenta conter informações valiosas, mas que está isolado e monitorado, constitui que tipo de medida de segurança?', 'Um honeypot (pote de mel) é um ambiente isolado projetado para atrair e estudar técnicas de invasores.', 'Segurança Cibernética', 'https://www.qconcursos.com/questoes-de-concursos/questoes/8268fc45-a3'),
+    ('q021', 'Quais informações você precisa para configurar um ponto de acesso sem fio?', 'Quais informações você precisa para configurar um ponto de acesso sem fio?', 'O SSID (Service Set Identifier) é o nome essencial que identifica a rede sem fio para os dispositivos.', 'Segurança Cibernética', 'https://www.tp-link.com/br/support/faq/1384/'),
+    ('q022', 'Qual das seguintes opções é um algoritmo de hash de senha?', 'Qual das seguintes opções é um algoritmo de hash de senha?', 'MD4 é uma função hash criptográfica (embora obsoleta). AES, PGP e 3DES são algoritmos de criptografia.', 'Segurança Cibernética', 'https://www.ibm.com/docs/pt-br/aix/7.3.0?topic=algorithm-password-hashing-algorithms'),
+    ('q023', 'Quais são os dois tipos de firewalls de camada de rede?', 'Quais são os dois tipos de firewalls de camada de rede?', 'Firewalls com estado (stateful) analisam a conexão como um todo, enquanto sem estado (stateless) analisam pacotes isoladamente.', 'Segurança Cibernética', 'https://www.paloaltonetworks.com.br/cyberpedia/types-of-firewalls'),
+    ('q024', 'Qual das seguintes opções NÃO é uma ferramenta de software para quebrar senhas?', 'Qual das seguintes opções NÃO é uma ferramenta de software para quebrar senhas?', 'HoneyMonkey (Macaco de Mel) é um honeypot de pesquisa da Microsoft, não uma ferramenta de quebra de senhas.', 'Segurança Cibernética', 'https://www.deel.com/blog/password-cracking/'),
+    ('q025', 'Qual das seguintes opções NÃO é um ataque DoS?', 'Qual das seguintes opções NÃO é um ataque DoS?', 'Spoofing de servidor consiste em falsificar uma identidade para obter acesso ou enganar clientes, e não exaurir recursos de serviço.', 'Segurança Cibernética', 'https://www.passeidireto.com/es/question/200396892/qual-das-seguintes-opcoes-e-considerada-uma-ameaca-comum-no-ciberespaco-a-ataque'),
+    ('q026', 'Qual das seguintes opções representa o padrão de segurança do WPA2?', 'Qual das seguintes opções representa o padrão de segurança do WPA2?', 'O padrão IEEE 802.11i define a arquitetura e especificações de segurança implementadas pelo WPA2.', 'Segurança Cibernética', 'https://www.kaspersky.com.br/resource-center/definitions/wireless-protected-access-2'),
+    ('q027', 'Quais são os dois tipos de sistemas de prevenção de intrusões?', 'Quais são os dois tipos de sistemas de prevenção de intrusões?', 'Sistemas IPS são comumente categorizados pelo local de implantação: baseados em host (HIPS) ou rede (NIPS).', 'Segurança Cibernética', 'https://www.ibm.com/br-pt/think/topics/intrusion-prevention-system'),
+    ('q028', 'Qual das seguintes opções utiliza criptografia de chave assimétrica?', 'Qual das seguintes opções utiliza criptografia de chave assimétrica?', 'O PGP utiliza criptografia assimétrica baseada em par de chaves pública e privada para proteção de dados e assinaturas.', 'Segurança Cibernética', 'https://www.ibm.com/br-pt/think/topics/cryptography-types'),
+    ('q029', 'Qual das seguintes opções NÃO é um tipo de vírus?', 'Qual das seguintes opções NÃO é um tipo de vírus?', 'Wrapper (invólucro) é um recurso de programação/empacotamento de software e não uma categoria inerente de vírus.', 'Segurança Cibernética', 'https://www.dell.com/support/kbdoc/pt-pt/000132699/quais-s%C3%A3o-os-diferentes-tipos-de-v%C3%ADrus-spyware-e-malware-que-podem-infectar-meu-computador'),
+    ('q030', 'Quais são os dois tipos de listas de controle de acesso baseadas em funções?', 'Quais são os dois tipos de listas de controle de acesso baseadas em funções?', 'O controle de acesso obrigatório (MAC) e o discricionário (DAC) são dois modelos clássicos de atribuição de permissões.', 'Segurança Cibernética', 'https://www.linkedin.com/learning/nocoes-basicas-de-seguranca-da-microsoft-conceitos-solucoes-e-seguranca-com-tecnologia-de-ia/funcoes-e-controle-de-acesso-rbac-no-microsoft-entra'),
+    ('q031', 'Qual das seguintes opções seria a melhor senha?', 'Qual das seguintes opções seria a melhor senha?', 'Iw2c^tILV possui complexidade de caracteres, comprimento adequado e imprevisibilidade sem palavras comuns de dicionário.', 'Segurança Cibernética', 'https://www.mcafee.com/blogs/pt-br/seguranca-na-internet/15-dicas-para-senhas-mais-seguras/'),
+    ('q032', 'Ao receber um e-mail de um contato desconhecido com um anexo, você deve:', 'Ao receber um e-mail de um contato desconhecido com um anexo, você deve:', 'A conduta padrão de segurança ao receber anexos desconhecidos é excluí-los sem abrir nem encaminhar.', 'Segurança Cibernética', 'https://www.kaspersky.com.br/blog/how-to-deal-with-email-phishing/24081/'),
+    ('q033', 'Qual software é desenvolvido especificamente para detectar vírus de computador e impedi-los de entrar no sistema?', 'Qual software é desenvolvido especificamente para detectar vírus de computador e impedi-los de entrar no sistema?', 'Antivírus é a ferramenta de proteção criada especificamente para monitorar, detectar e remover infecções do sistema.', 'Segurança Cibernética', 'https://www.sophos.com/pt-br/cybersecurity-explained/antivirus'),
+    ('q034', 'Qual das seguintes opções representa um uso adequado do e-mail?', 'Qual das seguintes opções representa um uso adequado do e-mail?', 'Compartilhar vagas legítimas auxilia a rede profissional sem infringir políticas corporativas básicas.', 'Segurança Cibernética', 'https://validcertificadora.com.br/blogs/tecnologia/e-mail-corporativo-10-boas-praticas-a-serem-seguidas-por-funcionarios'),
+    ('q035', 'Qual das seguintes opções é um exemplo de programa antivírus?', 'Qual das seguintes opções é um exemplo de programa antivírus?', 'McAfee, Quick Heal (Cura rápida) e Kaspersky são softwares antivírus de proteção de endpoints.', 'Segurança Cibernética', 'https://www.alaresinternet.com.br/indoalem/seguranca-digital/melhor-antivirus/'),
+    ('q036', 'Qual é o método de transmissão de vírus mais comum?', 'Qual é o método de transmissão de vírus mais comum?', 'O correio eletrônico continua sendo o principal vetor de propagação em massa de ameaças cibernéticas.', 'Segurança Cibernética', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC7148619/'),
+    ('q037', 'Sua irmã lhe envia um e-mail no trabalho com um protetor de tela que ela diz que você vai adorar. O que você deve fazer?', 'Sua irmã lhe envia um e-mail no trabalho com um protetor de tela que ela diz que você vai adorar. O que você deve fazer?', 'Protetores de tela (.scr/.exe) não solicitados no ambiente corporativo representam alto risco de malware e devem ser apagados.', 'Segurança Cibernética', 'https://www.meuguru.com/guru-ia/pergunta/estudos-gerais/7-sobre-a-comunicacao-por-e-mail-no-ambiente-corporativo,-classifique-como-verdadeira-v-ou-falsa-8znPhskQa'),
+    ('q038', 'Quem, entre os seguintes, é conhecido por suas técnicas de defesa contra vírus de computador?', 'Quem, entre os seguintes, é conhecido por suas técnicas de defesa contra vírus de computador?', 'Fred Cohen foi pioneiro na definição acadêmica de vírus e no desenvolvimento das primeiras estratégias de defesa computacional nos anos 1980.', 'Segurança Cibernética', 'https://www.kaspersky.com.br/resource-center/threats/computer-viruses-and-malware-facts-and-faqs'),
+    ('q039', 'Qual das seguintes opções é um tipo de ameaça informática?', 'Qual das seguintes opções é um tipo de ameaça informática?', 'O ataque de Negação de Serviço (DoS) visa inviabilizar a disponibilidade do sistema inundando-o com requisições.', 'Segurança Cibernética', 'https://www.fortinet.com/br/resources/cyberglossary/network-security-threats'),
+    ('q040', 'Quem cunhou o termo "Vírus" no contexto da computação?', 'Quem cunhou o termo "Vírus" no contexto da computação?', 'Len Adleman cunhou formalmente o termo acadêmico ''vírus de computador'' durante os experimentos de Fred Cohen.', 'Segurança Cibernética', 'https://www.quora.com/Who-coined-the-term-virus-Pasteur-or-M-W-Beijerinck'),
+    ('q041', 'O cursor do mouse na tela do seu computador começa a se mover sozinho e a clicar em itens na sua área de trabalho. O que você faz imediatamente?', 'O cursor do mouse na tela do seu computador começa a se mover sozinho e a clicar em itens na sua área de trabalho. O que você faz imediatamente?', 'Indício evidente de controle remoto não autorizado. O suporte de TI deve ser acionado imediatamente e o cabo de rede/Wi-Fi isolado.', 'Segurança Cibernética', 'https://www.quora.com/The-mouse-on-your-computer-screen-starts-to-move-around-on-its-own-and-click-on-things-on-your-desktop-What-do-you-do'),
+    ('q042', 'Qual das seguintes técnicas é mais eficaz na prevenção de ataques Man-in-the-Middle (MitM) durante o processo inicial de troca de chaves em um…', 'Qual das seguintes técnicas é mais eficaz na prevenção de ataques Man-in-the-Middle (MitM) durante o processo inicial de troca de chaves em um handshake TLS?', 'Diffie-Hellman com PFS assegura chaves de sessão efêmeras que impedem a descriptografia de tráfego capturado mesmo em comprometimento de chave de longo prazo.', 'Segurança Cibernética', 'https://www.bitdefender.com.br/consumer/support/answer/79593/'),
+    ('q043', 'Qual dos seguintes departamentos normalmente detém as diretrizes e os procedimentos para o uso seguro de TI dentro de uma organização?', 'Qual dos seguintes departamentos normalmente detém as diretrizes e os procedimentos para o uso seguro de TI dentro de uma organização?', 'O setor de TI/Segurança da Informação é o responsável institucional pelas políticas e controles de uso seguro de recursos computacionais.', 'Segurança Cibernética', 'https://www.passeidireto.com/pergunta/135390536/os-departamentos-de-tecnologia-da-informacao-ti-desempenham-um-papel-crucial-no-'),
+    ('q044', 'Qual das seguintes opções descreve como descobrir a política de privacidade de uma organização?', 'Qual das seguintes opções descreve como descobrir a política de privacidade de uma organização?', 'As políticas corporativas oficiais de privacidade e conformidade estão compiladas no manual de conduta e governança da instituição.', 'Segurança Cibernética', 'https://www.totvs.com/blog/gestao-para-assinatura-de-documentos/politica-de-privacidade/'),
+    ('q045', 'Qual das seguintes opções descreve por que os usuários devem bloquear o computador ao se afastarem da mesa?', 'Qual das seguintes opções descreve por que os usuários devem bloquear o computador ao se afastarem da mesa?', 'O bloqueio de tela impede que terceiros tenham acesso físico e visual direto a sessões autenticadas e dados corporativos.', 'Segurança Cibernética', 'https://www.totvs.com/blog/gestao-para-assinatura-de-documentos/politica-de-privacidade/'),
+    ('q046', 'Qual das seguintes opções é uma razão pela qual os usuários devem fazer login com um nome de usuário e senha?', 'Qual das seguintes opções é uma razão pela qual os usuários devem fazer login com um nome de usuário e senha?', 'A autenticação garante que apenas indivíduos autorizados acessem as informações e recursos adequados ao seu perfil.', 'Segurança Cibernética', 'https://www.fortinet.com/br/resources/cyberglossary/login-credentials'),
+    ('q047', 'Qual das seguintes opções resultaria na perda dos dados de contato caso o dispositivo fosse roubado?', 'Qual das seguintes opções resultaria na perda dos dados de contato caso o dispositivo fosse roubado?', 'Smartphones armazenam agendas telefônicas, credenciais e bases de contatos locais suscetíveis a furto.', 'Segurança Cibernética', 'https://tecnoblog.net/responde/como-apagar-dados-celular-roubado-perdido/'),
+    ('q048', 'Qual das seguintes opções demonstra respeito pela confidencialidade da informação?', 'Qual das seguintes opções demonstra respeito pela confidencialidade da informação?', 'O princípio da confidencialidade exige que dados sensíveis sejam revelados exclusivamente a entidades com a devida autorização.', 'Segurança Cibernética', 'https://www.varitus.com.br/blog/quais-sao-os-4-principios-da-seguranca-da-informacao/'),
+    ('q049', 'Qual das seguintes opções descreve o Bluetooth?', 'Qual das seguintes opções descreve o Bluetooth?', 'Bluetooth é uma tecnologia de radiofrequência sem fio desenvolvida especificamente para comunicação em redes pessoais (PAN) de curto alcance.', 'Segurança Cibernética', 'https://tecnoblog.net/responde/o-que-e-bluetooth/'),
+    ('q050', 'Qual das seguintes opções descreve o que você deve fazer se receber um e-mail em cadeia?', 'Qual das seguintes opções descreve o que você deve fazer se receber um e-mail em cadeia?', 'Correntes devem ser excluídas para mitigar golpes, coleta indevida de dados (harvesting) e congestionamento de servidores corporativos.', 'Segurança Cibernética', 'https://www.passeidireto.com/pergunta/179167352/voce-recebe-um-e-mail-suspeito-que-voce-acha-que-pode-ser-um-ataque-cibernetico-'),
+    ('q051', 'O que significa a sigla IA?', 'O que significa a sigla IA?', 'IA é a sigla consagrada para Inteligência Artificial.', 'Inteligência Artificial', 'https://www.ibm.com/br-pt/think/topics/artificial-intelligence'),
+    ('q052', 'Qual é um dos principais objetivos da Inteligência Artificial?', 'Qual é um dos principais objetivos da Inteligência Artificial?', 'A IA busca desenvolver sistemas computacionais capazes de emular raciocínio, aprendizado e resolução de problemas humanos.', 'Inteligência Artificial', 'https://azure.microsoft.com/pt-br/resources/cloud-computing-dictionary/what-is-artificial-intelligence'),
+    ('q053', 'O que é Machine Learning?', 'O que é Machine Learning?', 'Machine Learning (Aprendizado de Máquina) foca na criação de algoritmos que aprendem e melhoram seu desempenho a partir de dados.', 'Inteligência Artificial', 'https://aws.amazon.com/pt/compare/the-difference-between-artificial-intelligence-and-machine-learning/'),
+    ('q054', 'Qual destes é um exemplo de aplicação de IA?', 'Qual destes é um exemplo de aplicação de IA?', 'A identificação e classificação de padrões em imagens constitui uma área clássica de aplicação de IA.', 'Inteligência Artificial', 'https://aws.amazon.com/pt/what-is/artificial-intelligence/'),
+    ('q055', 'O que uma IA generativa pode criar?', 'O que uma IA generativa pode criar?', 'IAs generativas utilizam modelos de aprendizado profundo para sintetizar novos dados textuais, visuais, sonoros e multimodais.', 'Inteligência Artificial', 'https://www.ibm.com/br-pt/think/topics/generative-ai'),
+    ('q056', 'Para que servem os dados no treinamento de uma IA?', 'Para que servem os dados no treinamento de uma IA?', 'Os conjuntos de dados funcionam como substrato para ajuste de pesos matemáticos e identificação de regularidades estatísticas.', 'Inteligência Artificial', 'https://cloud.google.com/learn/what-is-artificial-intelligence'),
+    ('q057', 'Qual destes exemplos utiliza IA no cotidiano?', 'Qual destes exemplos utiliza IA no cotidiano?', 'Sistemas de recomendação de plataformas de streaming empregam algoritmos preditivos baseados no histórico do usuário.', 'Inteligência Artificial', 'https://cloud.google.com/learn/what-is-artificial-intelligence'),
+    ('q058', 'O que é Deep Learning?', 'O que é Deep Learning?', 'Aprendizado Profundo consiste em redes neurais artificiais profundas com múltiplas camadas ocultas de abstração.', 'Inteligência Artificial', 'https://www.ibm.com/br-pt/think/topics/deep-learning'),
+    ('q059', 'Qual tecnologia é utilizada para permitir que computadores interpretem imagens?', 'Qual tecnologia é utilizada para permitir que computadores interpretem imagens?', 'A visão computacional estuda a extração automatizada de significado a partir de imagens e vídeos digitais.', 'Inteligência Artificial', 'https://www.ibm.com/br-pt/think/machine-learning'),
+    ('q060', 'O que é processamento de linguagem natural (PLN)?', 'O que é processamento de linguagem natural (PLN)?', 'PLN (ou NLP) é a subárea interdisciplinar dedicada à compreensão, interpretação e geração de linguagem humana por software.', 'Inteligência Artificial', 'https://www.ibm.com/br-pt/think/machine-learning'),
+    ('q061', 'Qual destes é um exemplo de assistente virtual que utiliza IA?', 'Qual destes é um exemplo de assistente virtual que utiliza IA?', 'A Amazon Alexa integra reconhecimento de voz e processamento de linguagem natural.', 'Inteligência Artificial', 'https://aws.amazon.com/pt/what-is/artificial-intelligence/'),
+    ('q062', 'O que é uma rede neural artificial?', 'O que é uma rede neural artificial?', 'Trata-se de uma arquitetura computacional inspirada na estrutura biológica de neurônios para mapear entradas e saídas.', 'Inteligência Artificial', 'https://aws.amazon.com/pt/what-is/artificial-intelligence/'),
+    ('q063', 'Qual é uma possível utilização da IA no setor de saúde?', 'Qual é uma possível utilização da IA no setor de saúde?', 'Modelos de IA apoiam a detecção precoce de patologias em exames radiológicos e ressonâncias.', 'Inteligência Artificial', 'https://www.oracle.com/br/artificial-intelligence/ai-cloud-computing/'),
+    ('q064', 'O que é IA generativa?', 'O que é IA generativa?', 'Modelos generativos produzem instâncias inéditas de texto, áudio ou mídia com base em instruções recebidas.', 'Inteligência Artificial', 'https://www.ibm.com/br-pt/think/topics/generative-ai'),
+    ('q065', 'O que é um prompt em sistemas de IA generativa?', 'O que é um prompt em sistemas de IA generativa?', 'Prompt é o texto de entrada ou contexto dado ao modelo para guiar o que ele deve gerar.', 'Inteligência Artificial', 'https://www.ibm.com/br-pt/think/topics/generative-ai'),
+    ('q066', 'Qual destes é um possível benefício da Inteligência Artificial?', 'Qual destes é um possível benefício da Inteligência Artificial?', 'A automação de fluxos repetitivos é uma das principais contribuições operacionais da IA.', 'Inteligência Artificial', 'https://www.oracle.com/br/artificial-intelligence/what-is-ai/'),
+    ('q067', 'O que significa dizer que uma IA aprende padrões?', 'O que significa dizer que uma IA aprende padrões?', 'O aprendizado consiste em ajustar correlações matemáticas a partir de dados históricos para generalizar novas previsões.', 'Inteligência Artificial', 'https://cloud.google.com/learn/what-is-artificial-intelligence'),
+    ('q068', 'Qual destes é um exemplo de IA generativa?', 'Qual destes é um exemplo de IA generativa?', 'Sistemas de text-to-image exemplificam modelos fundacionais generativos aplicados a síntese de mídia.', 'Inteligência Artificial', 'https://www.ibm.com/br-pt/think/topics/generative-ai'),
+    ('q069', 'O que é AGI (Inteligência Artificial Geral)?', 'O que é AGI (Inteligência Artificial Geral)?', 'AGI define o estágio teórico de IA com flexibilidade cognitiva de adaptação e aprendizado em qualquer domínio humano.', 'Inteligência Artificial', 'https://aws.amazon.com/pt/what-is/artificial-general-intelligence/'),
+    ('q070', 'Por que é importante verificar informações produzidas por uma IA?', 'Por que é importante verificar informações produzidas por uma IA?', 'Modelos probabilísticos podem alucinar ou propagar inconsistências factuais, exigindo supervisão e validação crítica.', 'Inteligência Artificial', 'https://www.ibm.com/br-pt/think/topics/artificial-intelligence-business'),
+    ('q071', 'O que é um chatbot?', 'O que é um chatbot?', 'Chatbots são agentes de software orientados a manter diálogos interativos com usuários.', 'Inteligência Artificial', 'https://cloud.google.com/learn/what-is-a-chatbot'),
+    ('q072', 'O que é um algoritmo?', 'O que é um algoritmo?', 'Um algoritmo é uma sequência lógica e finita de passos formulada para executar uma operação específica.', 'Inteligência Artificial', 'https://www.ibm.com/topics/algorithms'),
+    ('q073', 'Qual é a função de um conjunto de dados no desenvolvimento de IA?', 'Qual é a função de um conjunto de dados no desenvolvimento de IA?', 'Datasets contêm as amostras e atributos a partir dos quais o algoritmo calibra seus pesos.', 'Inteligência Artificial', 'https://cloud.google.com/learn/what-is-a-dataset'),
+    ('q074', 'O que é reconhecimento facial?', 'O que é reconhecimento facial?', 'Aplicação biométrica de visão computacional que mapeia marcos e padrões geométricos da face.', 'Inteligência Artificial', 'https://azure.microsoft.com/en-us/products/ai-services/ai-face'),
+    ('q075', 'Qual área da IA permite que computadores interpretem imagens?', 'Qual área da IA permite que computadores interpretem imagens?', 'A visão computacional estuda a aquisição e o processamento semântico de matrizes de pixels visuais.', 'Inteligência Artificial', 'https://cloud.google.com/vision'),
+    ('q076', 'O que é um assistente virtual?', 'O que é um assistente virtual?', 'Software conversacional concebido para desempenhar tarefas e rotinas baseadas na intenção do usuário.', 'Inteligência Artificial', 'https://www.amazon.com/alexa'),
+    ('q077', 'Qual é um exemplo de uso de IA no comércio eletrônico?', 'Qual é um exemplo de uso de IA no comércio eletrônico?', 'Mecanismos de filtragem colaborativa geram recomendações personalizadas no e-commerce.', 'Inteligência Artificial', 'https://aws.amazon.com/what-is/recommendation-engine/'),
+    ('q078', 'O que significa viés em um sistema de IA?', 'O que significa viés em um sistema de IA?', 'Viés algorítmico resulta em disparidades sistemáticas decorrentes de dados de treinamento desequilibrados ou premissas do modelo.', 'Inteligência Artificial', 'https://www.nist.gov/itl/ai-risk-management-framework'),
+    ('q079', 'Por que a qualidade dos dados é importante para uma IA?', 'Por que a qualidade dos dados é importante para uma IA?', 'Bases de dados ruidosas ou enviesadas degradam a precisão e a capacidade de generalização do modelo.', 'Inteligência Artificial', 'https://www.ibm.com/topics/data-quality'),
+    ('q080', 'O que é treinamento de um modelo de IA?', 'O que é treinamento de um modelo de IA?', 'O treinamento consiste na otimização dos pesos internos do algoritmo para minimizar a função de perda calculada sobre os dados.', 'Inteligência Artificial', 'https://cloud.google.com/learn/what-is-machine-learning'),
+    ('q081', 'O que é inferência em Inteligência Artificial?', 'O que é inferência em Inteligência Artificial?', 'Inferência é a etapa de execução onde um modelo já treinado recebe novos dados em tempo real e calcula predições.', 'Inteligência Artificial', 'https://www.nvidia.com/en-us/glossary/ai-inference/'),
+    ('q082', 'Qual é uma aplicação da IA na agricultura?', 'Qual é uma aplicação da IA na agricultura?', 'Na agricultura de precisão, sensores e visão computacional mapeiam pragas, escassez hídrica e saúde vegetal.', 'Inteligência Artificial', 'https://www.fao.org/digital-agriculture/en/'),
+    ('q083', 'Como a IA pode ajudar no trânsito?', 'Como a IA pode ajudar no trânsito?', 'Modelos preditivos analisam fluxos de veículos para sincronizar semáforos e otimizar rotas de mobilidade urbana.', 'Inteligência Artificial', 'https://www.ibm.com/topics/artificial-intelligence'),
+    ('q084', 'O que é um robô autônomo?', 'O que é um robô autônomo?', 'Sistemas robóticos autônomos percebem o ambiente via sensores e executam ações planejadas com pouca ou nenhuma intervenção humana direta.', 'Inteligência Artificial', 'https://www.nasa.gov/technology/robotics/'),
+    ('q085', 'Qual é uma função de filtros de spam que usam IA?', 'Qual é uma função de filtros de spam que usam IA?', 'Classificadores inteligentes analisam termos, remetentes e cabeçalhos para isolar mensagens indesejadas.', 'Inteligência Artificial', 'https://support.google.com/mail/answer/1366858'),
+    ('q086', 'O que é aprendizado supervisionado?', 'O que é aprendizado supervisionado?', 'No aprendizado supervisionado, o modelo recebe dados de entrada acompanhados das respectivas saídas esperadas (rótulos).', 'Inteligência Artificial', 'https://cloud.google.com/learn/what-is-machine-learning'),
+    ('q087', 'O que caracteriza o aprendizado não supervisionado?', 'O que caracteriza o aprendizado não supervisionado?', 'Métodos não supervisionados descobrem agrupamentos e estruturas intrínsecas nos dados sem orientação de saídas predefinidas.', 'Inteligência Artificial', 'https://www.ibm.com/topics/unsupervised-learning'),
+    ('q088', 'No aprendizado por reforço, como o sistema aprende?', 'No aprendizado por reforço, como o sistema aprende?', 'O agente interage com um ambiente por tentativa e erro, buscando maximizar uma função de recompensa cumulativa.', 'Inteligência Artificial', 'https://cloud.google.com/discover/what-is-reinforcement-learning'),
+    ('q089', 'O que é um cuidado importante ao usar ferramentas de IA?', 'O que é um cuidado importante ao usar ferramentas de IA?', 'A checagem de fatos e a observância de privacidade evitam a propagação de inconsistências geradas por modelos de linguagem.', 'Inteligência Artificial', 'https://www.unesco.org/en/artificial-intelligence/recommendation-ethics'),
+    ('q090', 'O que são dados pessoais?', 'O que são dados pessoais?', 'Conforme diretrizes de privacidade e a LGPD, dados pessoais são dados que tornam um titular identificável direta ou indiretamente.', 'Inteligência Artificial', 'https://www.gov.br/anpd/pt-br'),
+    ('q091', 'Qual é uma possível aplicação da IA na educação?', 'Qual é uma possível aplicação da IA na educação?', 'A IA pode atuar em tutoria inteligente e personalização pedagógica adaptada ao ritmo do estudante.', 'Inteligência Artificial', 'https://www.unesco.org/en/digital-education/artificial-intelligence'),
+    ('q092', 'O que é tradução automática?', 'O que é tradução automática?', 'Sistemas computacionais que decodificam sentenças em uma língua-fonte e as expressam sintática e semanticamente em uma língua-alvo.', 'Inteligência Artificial', 'https://translate.google.com/about/'),
+    ('q093', 'Como sistemas de IA podem ajudar pessoas com deficiência visual?', 'Como sistemas de IA podem ajudar pessoas com deficiência visual?', 'A combinação de OCR, visão computacional e síntese de voz (TTS) amplia o acesso descritivo ao conteúdo do ambiente e das telas.', 'Inteligência Artificial', 'https://www.microsoft.com/en-us/ai/'),
+    ('q094', 'O que é uma deepfake?', 'O que é uma deepfake?', 'Síntese digital hiper-realista que sobrepõe feições, voz ou trejeitos de indivíduos usando redes neurais adversariais e difusão.', 'Inteligência Artificial', 'https://www.cisa.gov/topics/cyber-threats-and-advisories'),
+    ('q095', 'Qual atitude ajuda a identificar uma possível fraude criada com IA?', 'Qual atitude ajuda a identificar uma possível fraude criada com IA?', 'A checagem cruzada de fontes institucionais e canais oficiais atenua o impacto de mídias forjadas.', 'Inteligência Artificial', 'https://www.cisa.gov/'),
+    ('q096', 'O que é automação com IA?', 'O que é automação com IA?', 'Integração de modelos cognitivos na execução contínua de procedimentos operacionais e analíticos.', 'Inteligência Artificial', 'https://www.ibm.com/topics/automation'),
+    ('q097', 'Qual é a finalidade de um sistema de recomendação?', 'Qual é a finalidade de um sistema de recomendação?', 'Prever afinidades entre perfis de consumidores e catálogos de itens para priorizar exibições relevantes.', 'Inteligência Artificial', 'https://aws.amazon.com/what-is/recommendation-engine/'),
+    ('q098', 'O que é um modelo de linguagem?', 'O que é um modelo de linguagem?', 'Redes neurais arquitetadas com mecanismos de atenção (Transformers) para entender e gerar texto natural.', 'Inteligência Artificial', 'https://cloud.google.com/ai/generative-ai'),
+    ('q099', 'Por que a supervisão humana pode ser importante em decisões apoiadas por IA?', 'Por que a supervisão humana pode ser importante em decisões apoiadas por IA?', 'O ser humano avalia implicações éticas, nuances contextuais e exceções que algoritmos estritamente estatísticos não captam.', 'Inteligência Artificial', 'https://www.nist.gov/itl/ai-risk-management-framework'),
+    ('q100', 'Qual é uma limitação possível de sistemas de IA generativa?', 'Qual é uma limitação possível de sistemas de IA generativa?', 'Modelos generativos estão sujeitos a alucinações (gerar respostas falsas com alto grau de confiança).', 'Inteligência Artificial', 'https://blog.google/technology/ai/')
+) AS v(codigo, titulo, enunciado, explicacao, categoria, url)
+JOIN categoria c ON c.nome = v.categoria
+JOIN fonte     f ON f.url  = v.url
+-- ORDER BY fixa a ordem: q001 recebe id_pergunta 1, q002 recebe 2, etc.
+-- Sem isso o JOIN pode entregar as linhas embaralhadas.
+ORDER BY v.codigo
+ON CONFLICT (codigo) DO NOTHING;
+
+-- ---------------------------------------------------------------------
+-- 5) Alternativas (MER: PERGUNTA 1:N ALTERNATIVA, 1 correta por pergunta)
+-- ---------------------------------------------------------------------
+INSERT INTO alternativa (id_pergunta, identificador, texto, correta)
+SELECT q.id_pergunta, v.identificador, v.texto, v.correta
+FROM (VALUES
+    ('q001', 'A', 'Acelerar a conexão com a internet.', FALSE),
+    ('q001', 'B', 'Criptografar e proteger as comunicações pela internet.', TRUE),
+    ('q001', 'C', 'Bloquear sites maliciosos.', FALSE),
+    ('q001', 'D', 'Aumentar a intensidade do sinal Wi-Fi.', FALSE),
+    ('q002', 'A', 'Stealth [arquivo/diretório].', FALSE),
+    ('q002', 'B', 'Attrib +h [arquivo / diretório].', TRUE),
+    ('q002', 'C', 'Ocultar -h [arquivo/diretório].', FALSE),
+    ('q002', 'D', 'Attrib *h [ arquivo / diretório].', FALSE),
+    ('q003', 'A', 'Provedor de Serviços de Internet.', FALSE),
+    ('q003', 'B', 'Um computador quântico.', FALSE),
+    ('q003', 'C', 'Computadores/Dispositivos que estão conectados entre si.', TRUE),
+    ('q003', 'D', 'Cabos de fibra óptica.', FALSE),
+    ('q004', 'A', 'SQL Slammer.', TRUE),
+    ('q004', 'B', 'Verme da Tempestade.', FALSE),
+    ('q004', 'C', 'SQL Michelangelo.', FALSE),
+    ('q004', 'D', 'O Grande Verme.', FALSE),
+    ('q005', 'A', 'Um armazenamento seguro para senhas.', FALSE),
+    ('q005', 'B', 'Isolar e analisar programas suspeitos ou não confiáveis.', TRUE),
+    ('q005', 'C', 'Criando um ambiente de testes virtual para hackers éticos.', FALSE),
+    ('q005', 'D', 'Proteção contra ataques de phishing.', FALSE),
+    ('q006', 'A', 'Um traje de proteção usado por profissionais de cibersegurança.', FALSE),
+    ('q006', 'B', 'Uma barreira física em torno dos servidores de computador.', FALSE),
+    ('q006', 'C', 'Um sistema de segurança que monitora e controla o tráfego de rede.', TRUE),
+    ('q006', 'D', 'Software para evitar o superaquecimento do computador.', FALSE),
+    ('q007', 'A', 'Verme.', FALSE),
+    ('q007', 'B', 'Trojan.', FALSE),
+    ('q007', 'C', 'Ransomware.', TRUE),
+    ('q007', 'D', 'Sequestrador de navegador.', FALSE),
+    ('q008', 'A', 'Detecção de malware.', FALSE),
+    ('q008', 'B', 'Autenticação de usuários.', FALSE),
+    ('q008', 'C', 'Prevenção de bots automatizados.', TRUE),
+    ('q008', 'D', 'Criptografar dados.', FALSE),
+    ('q009', 'A', 'Governos.', FALSE),
+    ('q009', 'B', 'Criminosos.', FALSE),
+    ('q009', 'C', 'Hacktivistas.', FALSE),
+    ('q009', 'D', 'Todas as opções acima.', TRUE),
+    ('q010', 'A', 'Rootkit.', FALSE),
+    ('q010', 'B', 'Sistema Operacional.', FALSE),
+    ('q010', 'C', 'Botnet.', TRUE),
+    ('q010', 'D', 'DDoS.', FALSE),
+    ('q011', 'A', 'Consiste em uma chave de assinatura privada e uma chave de verificação pública;', TRUE),
+    ('q011', 'B', 'O remetente e o destinatário devem compartilhar uma chave de forma segura;', FALSE),
+    ('q011', 'C', 'Não pode ser usado para fins de não repúdio;', FALSE),
+    ('q011', 'D', 'Não pode ser usado para autenticação do remetente.', FALSE),
+    ('q012', 'A', 'Monitorar o tráfego de rede para identificar o endereço MAC de um computador;', FALSE),
+    ('q012', 'B', 'Bombardear continuamente uma rede alvo com solicitações falsas;', TRUE),
+    ('q012', 'C', 'Injetar comandos falsos de reconfiguração de rede;', FALSE),
+    ('q012', 'D', 'Forçar os computadores a interromperem suas conexões e se reconectarem ao ponto de acesso do atacante.', FALSE),
+    ('q013', 'A', 'Malware;', FALSE),
+    ('q013', 'B', 'Adware;', FALSE),
+    ('q013', 'C', 'Spyware;', TRUE),
+    ('q013', 'D', 'Ransomware.', FALSE),
+    ('q014', 'A', 'WEP;', FALSE),
+    ('q014', 'B', 'WAP;', FALSE),
+    ('q014', 'C', 'WIPS;', FALSE),
+    ('q014', 'D', 'WPA.', TRUE),
+    ('q015', 'A', 'Falso Positivo;', TRUE),
+    ('q015', 'B', 'Falso negativo;', FALSE),
+    ('q015', 'C', 'Verdadeiro Negativo;', FALSE),
+    ('q015', 'D', 'Verdadeiro Positivo.', FALSE),
+    ('q016', 'A', 'SSH;', TRUE),
+    ('q016', 'B', 'FTP;', FALSE),
+    ('q016', 'C', 'Telnet;', FALSE),
+    ('q016', 'D', 'SMTP.', FALSE),
+    ('q017', 'A', 'Trojan;', FALSE),
+    ('q017', 'B', 'Vírus;', TRUE),
+    ('q017', 'C', 'Minhoca;', FALSE),
+    ('q017', 'D', 'Spam.', FALSE),
+    ('q018', 'A', 'Caixa cinza;', FALSE),
+    ('q018', 'B', 'Caixa branca;', FALSE),
+    ('q018', 'C', 'Caixa Azul;', FALSE),
+    ('q018', 'D', 'Caixa preta.', TRUE),
+    ('q019', 'A', 'Ameaça interna;', FALSE),
+    ('q019', 'B', 'Phishing;', FALSE),
+    ('q019', 'C', 'Engenharia social;', TRUE),
+    ('q019', 'D', 'Baleia.', FALSE),
+    ('q020', 'A', 'Pseudo-rede;', FALSE),
+    ('q020', 'B', 'Pote de mel;', TRUE),
+    ('q020', 'C', 'Rede Virtual;', FALSE),
+    ('q020', 'D', 'Armadilha para Canários.', FALSE),
+    ('q021', 'A', 'SSID;', TRUE),
+    ('q021', 'B', 'endereço MAC;', FALSE),
+    ('q021', 'C', 'endereço IP;', FALSE),
+    ('q021', 'D', 'ARP.', FALSE),
+    ('q022', 'A', 'AES', FALSE),
+    ('q022', 'B', 'MD4', TRUE),
+    ('q022', 'C', 'PGP', FALSE),
+    ('q022', 'D', '3DES', FALSE),
+    ('q023', 'A', 'Com estado e sem estado', TRUE),
+    ('q023', 'B', 'Dinâmico e estático', FALSE),
+    ('q023', 'C', 'Anomalia e assinatura', FALSE),
+    ('q023', 'D', 'Obrigatório e discricionário', FALSE),
+    ('q024', 'A', 'Macaco de Mel', TRUE),
+    ('q024', 'B', 'Caim e Abel', FALSE),
+    ('q024', 'C', 'João, o Estripador', FALSE),
+    ('q024', 'D', 'Hashcat', FALSE),
+    ('q025', 'A', 'Spoofing de servidor', TRUE),
+    ('q025', 'B', 'Transmissão Ping', FALSE),
+    ('q025', 'C', 'Ping da Morte', FALSE),
+    ('q025', 'D', 'Smurf', FALSE),
+    ('q026', 'A', '802.11ad', FALSE),
+    ('q026', 'B', '802.11i', TRUE),
+    ('q026', 'C', '802.11n', FALSE),
+    ('q026', 'D', '802.11a', FALSE),
+    ('q027', 'A', 'Passivo e ativo', FALSE),
+    ('q027', 'B', 'Anomalia e assinatura', FALSE),
+    ('q027', 'C', 'Hospedagem e rede', TRUE),
+    ('q027', 'D', 'Interno e externo', FALSE),
+    ('q028', 'A', 'AES', FALSE),
+    ('q028', 'B', 'PGP', TRUE),
+    ('q028', 'C', '3DES', FALSE),
+    ('q028', 'D', 'RC5', FALSE),
+    ('q029', 'A', 'Escavação de túneis', FALSE),
+    ('q029', 'B', 'Setor de botas', FALSE),
+    ('q029', 'C', 'Macro', FALSE),
+    ('q029', 'D', 'Invólucro', TRUE),
+    ('q030', 'A', 'Objeto e permissão', FALSE),
+    ('q030', 'B', 'Sistema de arquivos e redes', FALSE),
+    ('q030', 'C', 'Dinâmico e estático', FALSE),
+    ('q030', 'D', 'Obrigatório e discricionário', TRUE),
+    ('q031', 'A', 'Meu Segredo', FALSE),
+    ('q031', 'B', 'Iw2c^tILV', TRUE),
+    ('q031', 'C', 'ABC123', FALSE),
+    ('q031', 'D', 'Teclado', FALSE),
+    ('q032', 'A', 'Abra o anexo para visualizar o conteúdo.', FALSE),
+    ('q032', 'B', 'Apague o e-mail', TRUE),
+    ('q032', 'C', 'Encaminhe o e-mail para seus colegas para que eles possam abrir o anexo primeiro.', FALSE),
+    ('q032', 'D', 'Encaminhe o e-mail para sua conta de e-mail pessoal para que você possa abri-lo em casa.', FALSE),
+    ('q033', 'A', 'Spyware', FALSE),
+    ('q033', 'B', 'Malware', FALSE),
+    ('q033', 'C', 'Adware', FALSE),
+    ('q033', 'D', 'Antivírus', TRUE),
+    ('q034', 'A', 'Nunca envie informações pessoais por e-mail.', FALSE),
+    ('q034', 'B', 'Envie listas de preços para os produtos do seu negócio em casa.', FALSE),
+    ('q034', 'C', 'Encaminhe e-mails inspiradores e divertidos para seus colegas de trabalho para alegrar o dia deles.', FALSE),
+    ('q034', 'D', 'Envie um e-mail para todos os seus amigos e colegas de trabalho para anunciar uma vaga de emprego na sua região.', TRUE),
+    ('q035', 'A', 'McAfee', FALSE),
+    ('q035', 'B', 'Cura rápida', FALSE),
+    ('q035', 'C', 'Kaspersky', FALSE),
+    ('q035', 'D', 'Tudo o que precede', TRUE),
+    ('q036', 'A', 'E-mail', TRUE),
+    ('q036', 'B', 'Mensagem instantânea', FALSE),
+    ('q036', 'C', 'Download da Internet', FALSE),
+    ('q036', 'D', 'Mídia portátil', FALSE),
+    ('q037', 'A', 'Faça o download para o seu computador, pois é de uma fonte confiável.', FALSE),
+    ('q037', 'B', 'Encaminhe a mensagem para outros amigos para que eles também a compartilhem.', FALSE),
+    ('q037', 'C', 'Ligue para o departamento de TI e peça ajuda para instalar o produto.', FALSE),
+    ('q037', 'D', 'Apague a mensagem.', TRUE),
+    ('q038', 'A', 'Eric Corley', FALSE),
+    ('q038', 'B', 'Tim Berners-Lee', FALSE),
+    ('q038', 'C', 'Robert Tappan Morris', FALSE),
+    ('q038', 'D', 'Fred Cohen', TRUE),
+    ('q039', 'A', 'Phishing', FALSE),
+    ('q039', 'B', 'Solicitação', FALSE),
+    ('q039', 'C', 'Ataque DoS', TRUE),
+    ('q039', 'D', 'Nenhuma das acima', FALSE),
+    ('q040', 'A', 'Len Adleman', TRUE),
+    ('q040', 'B', 'Carl Pomerance', FALSE),
+    ('q040', 'C', 'Ron Rivest', FALSE),
+    ('q040', 'D', 'John Brunner', FALSE),
+    ('q041', 'A', 'Chame seus colegas de trabalho para que eles possam ver.', FALSE),
+    ('q041', 'B', 'Contate imediatamente o suporte de TI.', TRUE),
+    ('q041', 'C', 'Desconecte o mouse.', FALSE),
+    ('q041', 'D', 'Desligue o computador.', FALSE),
+    ('q042', 'A', 'Utilizando uma chave pré-compartilhada (PSK) para a troca inicial.', FALSE),
+    ('q042', 'B', 'Implementando o Perfect Forward Secrecy (PFS) com troca de chaves Diffie-Hellman', TRUE),
+    ('q042', 'C', 'Baseando-se na troca de chaves RSA estáticas', FALSE),
+    ('q042', 'D', 'Utilizando certificados digitais assinados por uma Autoridade Certificadora (AC) confiável.', FALSE),
+    ('q043', 'A', 'O Departamento de TI.', TRUE),
+    ('q043', 'B', 'O Departamento de Marketing.', FALSE),
+    ('q043', 'C', 'O Departamento de Vendas.', FALSE),
+    ('q043', 'D', 'O Departamento de Finanças.', FALSE),
+    ('q044', 'A', 'Ao ler o boletim informativo do escritório.', FALSE),
+    ('q044', 'B', 'Ao ler a política no manual de políticas da organização.', TRUE),
+    ('q044', 'C', 'Ao falar com o Departamento de Finanças.', FALSE),
+    ('q044', 'D', 'Ao falar com o Departamento de Vendas.', FALSE),
+    ('q045', 'A', 'Para evitar o acesso não autorizado aos dados.', TRUE),
+    ('q045', 'B', 'Para evitar o desperdício de eletricidade.', FALSE),
+    ('q045', 'C', 'Para evitar que os dados sejam corrompidos.', FALSE),
+    ('q045', 'D', 'Para evitar o mau funcionamento do computador.', FALSE),
+    ('q046', 'A', 'Para estar ciente de quem está no prédio.', FALSE),
+    ('q046', 'B', 'Para verificar o controle do tempo dos usuários.', FALSE),
+    ('q046', 'C', 'Para proteger os computadores contra uso não autorizado.', TRUE),
+    ('q046', 'D', 'Para permitir uma saudação personalizada para cada usuário.', FALSE),
+    ('q047', 'A', 'Impressora.', FALSE),
+    ('q047', 'B', 'Celular.', TRUE),
+    ('q047', 'C', 'Modem.', FALSE),
+    ('q047', 'D', 'MP3.', FALSE),
+    ('q048', 'A', 'Discutir informações confidenciais por telefone.', FALSE),
+    ('q048', 'B', 'Divulgar informações confidenciais apenas a pessoas autorizadas.', TRUE),
+    ('q048', 'C', 'Carregar informações confidenciais em um site compartilhado.', FALSE),
+    ('q048', 'D', 'Enviar informações confidenciais por e-mail a um colega.', FALSE),
+    ('q049', 'A', 'Protocolo com fio de curto alcance para troca de dados.', FALSE),
+    ('q049', 'B', 'Protocolo sem fio de curto alcance para troca de dados.', TRUE),
+    ('q049', 'C', 'Protocolo sem fio de longo alcance para troca de dados.', FALSE),
+    ('q049', 'D', 'Protocolo com fio de longo alcance para troca de dados.', FALSE),
+    ('q050', 'A', 'Encaminhe o e-mail.', FALSE),
+    ('q050', 'B', 'Faça o download para o seu sistema.', FALSE),
+    ('q050', 'C', 'Apague o e-mail.', TRUE),
+    ('q050', 'D', 'Enviar confirmação de leitura.', FALSE),
+    ('q051', 'A', 'Internet Automatizada', FALSE),
+    ('q051', 'B', 'Inteligência Artificial', TRUE),
+    ('q051', 'C', 'Informação Avançada', FALSE),
+    ('q051', 'D', 'Integração Automática', FALSE),
+    ('q052', 'A', 'Simular algumas capacidades da inteligência humana', TRUE),
+    ('q052', 'B', 'Aumentar o tamanho dos computadores', FALSE),
+    ('q052', 'C', 'Substituir a internet', FALSE),
+    ('q052', 'D', 'Criar cabos mais rápidos', FALSE),
+    ('q053', 'A', 'Um sistema operacional', FALSE),
+    ('q053', 'B', 'Um tipo de hardware', FALSE),
+    ('q053', 'C', 'Um ramo da IA que permite aprender padrões a partir de dados', TRUE),
+    ('q053', 'D', 'Um programa de edição de texto', FALSE),
+    ('q054', 'A', 'Reconhecimento de imagens', TRUE),
+    ('q054', 'B', 'Cabo HDMI', FALSE),
+    ('q054', 'C', 'Teclado mecânico', FALSE),
+    ('q054', 'D', 'Pendrive', FALSE),
+    ('q055', 'A', 'Apenas números', FALSE),
+    ('q055', 'B', 'Apenas arquivos PDF', FALSE),
+    ('q055', 'C', 'Textos, imagens, vídeos e outros conteúdos', TRUE),
+    ('q055', 'D', 'Apenas conexões de internet', FALSE),
+    ('q056', 'A', 'Para ensinar o modelo a identificar padrões', TRUE),
+    ('q056', 'B', 'Para aumentar o tamanho do computador', FALSE),
+    ('q056', 'C', 'Para substituir o processador', FALSE),
+    ('q056', 'D', 'Para criar uma rede Wi-Fi', FALSE),
+    ('q057', 'A', 'Recomendações de filmes e músicas', TRUE),
+    ('q057', 'B', 'Cabo de energia', FALSE),
+    ('q057', 'C', 'Tomada elétrica', FALSE),
+    ('q057', 'D', 'Mousepad', FALSE),
+    ('q058', 'A', 'Um tipo de navegador', FALSE),
+    ('q058', 'B', 'Um subconjunto de Machine Learning baseado em redes neurais de várias camadas', TRUE),
+    ('q058', 'C', 'Um sistema operacional', FALSE),
+    ('q058', 'D', 'Um tipo de banco de dados', FALSE),
+    ('q059', 'A', 'Visão computacional', TRUE),
+    ('q059', 'B', 'Bluetooth', FALSE),
+    ('q059', 'C', 'USB', FALSE),
+    ('q059', 'D', 'GPS', FALSE),
+    ('q060', 'A', 'Tecnologia para aumentar a memória do computador', FALSE),
+    ('q060', 'B', 'Tecnologia que permite aos computadores processar linguagem humana', TRUE),
+    ('q060', 'C', 'Sistema para armazenar arquivos', FALSE),
+    ('q060', 'D', 'Tecnologia para melhorar a resolução do monitor', FALSE),
+    ('q061', 'A', 'Alexa', TRUE),
+    ('q061', 'B', 'HDMI', FALSE),
+    ('q061', 'C', 'SSD', FALSE),
+    ('q061', 'D', 'USB', FALSE),
+    ('q062', 'A', 'Uma rede de internet doméstica', FALSE),
+    ('q062', 'B', 'Um modelo inspirado no funcionamento dos neurônios para processar informações', TRUE),
+    ('q062', 'C', 'Um tipo de cabo', FALSE),
+    ('q062', 'D', 'Um programa antivírus', FALSE),
+    ('q063', 'A', 'Analisar imagens médicas', TRUE),
+    ('q063', 'B', 'Fabricar tomadas', FALSE),
+    ('q063', 'C', 'Aumentar o tamanho de monitores', FALSE),
+    ('q063', 'D', 'Substituir cabos de rede', FALSE),
+    ('q064', 'A', 'IA capaz de criar novos conteúdos a partir de solicitações', TRUE),
+    ('q064', 'B', 'Um tipo de memória RAM', FALSE),
+    ('q064', 'C', 'Um sistema de cabeamento', FALSE),
+    ('q064', 'D', 'Um antivírus', FALSE),
+    ('q065', 'A', 'Uma solicitação ou instrução fornecida pelo usuário', TRUE),
+    ('q065', 'B', 'Um tipo de processador', FALSE),
+    ('q065', 'C', 'Um arquivo de sistema', FALSE),
+    ('q065', 'D', 'Uma conexão de rede', FALSE),
+    ('q066', 'A', 'Automatizar tarefas', TRUE),
+    ('q066', 'B', 'Diminuir fisicamente o computador', FALSE),
+    ('q066', 'C', 'Eliminar todos os dados', FALSE),
+    ('q066', 'D', 'Impedir o acesso à internet', FALSE),
+    ('q067', 'A', 'Ela identifica relações presentes nos dados para realizar previsões ou decisões', TRUE),
+    ('q067', 'B', 'Ela troca automaticamente o processador', FALSE),
+    ('q067', 'C', 'Ela aumenta a memória física', FALSE),
+    ('q067', 'D', 'Ela instala programas sozinha em qualquer computador', FALSE),
+    ('q068', 'A', 'Uma ferramenta que gera uma imagem a partir de uma descrição', TRUE),
+    ('q068', 'B', 'Um cabo USB', FALSE),
+    ('q068', 'C', 'Um monitor', FALSE),
+    ('q068', 'D', 'Uma placa de vídeo sem software de IA', FALSE),
+    ('q069', 'A', 'Um tipo de placa de vídeo', FALSE),
+    ('q069', 'B', 'Um conceito de IA com capacidade geral semelhante à inteligência humana', TRUE),
+    ('q069', 'C', 'Um aplicativo de mensagens', FALSE),
+    ('q069', 'D', 'Um sistema de armazenamento', FALSE),
+    ('q070', 'A', 'Porque sistemas de IA podem produzir resultados que precisam de avaliação humana', TRUE),
+    ('q070', 'B', 'Porque a IA não consegue processar nenhum texto', FALSE),
+    ('q070', 'C', 'Porque toda resposta de IA é necessariamente falsa', FALSE),
+    ('q070', 'D', 'Porque IA funciona somente sem dados', FALSE),
+    ('q071', 'A', 'Um programa que conversa com pessoas por texto ou voz', TRUE),
+    ('q071', 'B', 'Um componente físico do computador', FALSE),
+    ('q071', 'C', 'Um tipo de cabo de rede', FALSE),
+    ('q071', 'D', 'Um sistema para imprimir documentos', FALSE),
+    ('q072', 'A', 'Uma sequência de instruções para realizar uma tarefa', TRUE),
+    ('q072', 'B', 'Uma peça usada para conectar computadores', FALSE),
+    ('q072', 'C', 'Um tipo de tela', FALSE),
+    ('q072', 'D', 'Um arquivo de música', FALSE),
+    ('q073', 'A', 'Fornecer exemplos para analisar ou treinar modelos', TRUE),
+    ('q073', 'B', 'Aumentar o brilho do monitor', FALSE),
+    ('q073', 'C', 'Substituir a bateria', FALSE),
+    ('q073', 'D', 'Conectar o computador à impressora', FALSE),
+    ('q074', 'A', 'Tecnologia que identifica ou verifica pessoas por características do rosto', TRUE),
+    ('q074', 'B', 'Programa para editar textos', FALSE),
+    ('q074', 'C', 'Tipo de armazenamento', FALSE),
+    ('q074', 'D', 'Ferramenta para compactar arquivos', FALSE),
+    ('q075', 'A', 'Visão computacional', TRUE),
+    ('q075', 'B', 'Planilhas eletrônicas', FALSE),
+    ('q075', 'C', 'Cabeamento estruturado', FALSE),
+    ('q075', 'D', 'Edição de áudio', FALSE),
+    ('q076', 'A', 'Software que ajuda o usuário por comandos ou conversas', TRUE),
+    ('q076', 'B', 'Dispositivo usado apenas para armazenar fotos', FALSE),
+    ('q076', 'C', 'Cabo que transmite energia', FALSE),
+    ('q076', 'D', 'Tipo de processador', FALSE),
+    ('q077', 'A', 'Recomendar produtos com base em interesses', TRUE),
+    ('q077', 'B', 'Trocar fisicamente a tela do celular', FALSE),
+    ('q077', 'C', 'Carregar a bateria do computador', FALSE),
+    ('q077', 'D', 'Imprimir etiquetas sem equipamento', FALSE),
+    ('q078', 'A', 'Uma tendência que pode favorecer ou prejudicar certos resultados', TRUE),
+    ('q078', 'B', 'A velocidade física do computador', FALSE),
+    ('q078', 'C', 'O tamanho do arquivo de treinamento', FALSE),
+    ('q078', 'D', 'A quantidade de teclas do teclado', FALSE),
+    ('q079', 'A', 'Dados inadequados podem prejudicar os resultados do sistema', TRUE),
+    ('q079', 'B', 'Dados nunca influenciam o funcionamento da IA', FALSE),
+    ('q079', 'C', 'A qualidade dos dados altera o tamanho do monitor', FALSE),
+    ('q079', 'D', 'Dados servem somente para conectar à internet', FALSE),
+    ('q080', 'A', 'Processo em que o modelo ajusta seus parâmetros usando dados', TRUE),
+    ('q080', 'B', 'Processo de instalar um teclado', FALSE),
+    ('q080', 'C', 'Troca de um monitor', FALSE),
+    ('q080', 'D', 'Limpeza física do computador', FALSE),
+    ('q081', 'A', 'Uso de um modelo treinado para produzir uma previsão ou resultado', TRUE),
+    ('q081', 'B', 'Montagem física de um computador', FALSE),
+    ('q081', 'C', 'Criação de uma senha de Wi-Fi', FALSE),
+    ('q081', 'D', 'Instalação de uma impressora', FALSE),
+    ('q082', 'A', 'Monitorar plantações e identificar problemas nas culturas', TRUE),
+    ('q082', 'B', 'Substituir toda a água usada na plantação', FALSE),
+    ('q082', 'C', 'Produzir energia sem equipamentos', FALSE),
+    ('q082', 'D', 'Transformar solo em plástico', FALSE),
+    ('q083', 'A', 'Analisando dados para apoiar a previsão e o gerenciamento do tráfego', TRUE),
+    ('q083', 'B', 'Pintando automaticamente todas as ruas', FALSE),
+    ('q083', 'C', 'Eliminando semáforos em qualquer situação', FALSE),
+    ('q083', 'D', 'Fazendo todos os veículos voarem', FALSE),
+    ('q084', 'A', 'Robô capaz de executar certas tarefas com pouca intervenção humana', TRUE),
+    ('q084', 'B', 'Computador sem sistema operacional', FALSE),
+    ('q084', 'C', 'Cabo que funciona sem energia', FALSE),
+    ('q084', 'D', 'Programa usado apenas para escrever textos', FALSE),
+    ('q085', 'A', 'Identificar mensagens que parecem indesejadas ou suspeitas', TRUE),
+    ('q085', 'B', 'Aumentar o espaço físico da caixa de entrada', FALSE),
+    ('q085', 'C', 'Criar novas contas bancárias', FALSE),
+    ('q085', 'D', 'Consertar a tela do celular', FALSE),
+    ('q086', 'A', 'Treinamento com exemplos que incluem respostas ou rótulos conhecidos', TRUE),
+    ('q086', 'B', 'Treinamento sem usar nenhum dado', FALSE),
+    ('q086', 'C', 'Método para resfriar computadores', FALSE),
+    ('q086', 'D', 'Técnica para aumentar a resolução de imagens', FALSE),
+    ('q087', 'A', 'O modelo procura padrões em dados sem rótulos fornecidos previamente', TRUE),
+    ('q087', 'B', 'O modelo recebe sempre a resposta correta em cada exemplo', FALSE),
+    ('q087', 'C', 'O computador funciona sem eletricidade', FALSE),
+    ('q087', 'D', 'O usuário programa cada resposta manualmente', FALSE),
+    ('q088', 'A', 'Recebendo recompensas ou penalidades pelas ações', TRUE),
+    ('q088', 'B', 'Lendo somente arquivos de texto', FALSE),
+    ('q088', 'C', 'Copiando a tela de outro computador', FALSE),
+    ('q088', 'D', 'Aumentando a memória RAM', FALSE),
+    ('q089', 'A', 'Conferir informações importantes antes de utilizá-las', TRUE),
+    ('q089', 'B', 'Compartilhar senhas para melhorar as respostas', FALSE),
+    ('q089', 'C', 'Aceitar toda resposta sem verificar', FALSE),
+    ('q089', 'D', 'Enviar dados pessoais sem avaliar a privacidade', FALSE),
+    ('q090', 'A', 'Informações relacionadas a uma pessoa identificada ou identificável', TRUE),
+    ('q090', 'B', 'Qualquer programa instalado no computador', FALSE),
+    ('q090', 'C', 'Somente imagens geradas por IA', FALSE),
+    ('q090', 'D', 'Apenas dados armazenados em pen drives', FALSE),
+    ('q091', 'A', 'Apoiar atividades de aprendizagem e personalizar exercícios', TRUE),
+    ('q091', 'B', 'Garantir que nenhum aluno precise estudar', FALSE),
+    ('q091', 'C', 'Substituir todas as escolas', FALSE),
+    ('q091', 'D', 'Eliminar professores em qualquer situação', FALSE),
+    ('q092', 'A', 'Conversão de texto ou fala de um idioma para outro por um sistema', TRUE),
+    ('q092', 'B', 'Transformação de um arquivo em peça física', FALSE),
+    ('q092', 'C', 'Aumento da velocidade da internet', FALSE),
+    ('q092', 'D', 'Criação de uma senha aleatória', FALSE),
+    ('q093', 'A', 'Descrevendo imagens ou reconhecendo textos em voz alta', TRUE),
+    ('q093', 'B', 'Aumentando fisicamente o tamanho dos objetos', FALSE),
+    ('q093', 'C', 'Substituindo todos os equipamentos médicos', FALSE),
+    ('q093', 'D', 'Desligando notificações do celular', FALSE),
+    ('q094', 'A', 'Conteúdo de áudio, imagem ou vídeo manipulado ou gerado para imitar alguém', TRUE),
+    ('q094', 'B', 'Tipo de cabo de computador', FALSE),
+    ('q094', 'C', 'Cópia de segurança de arquivos', FALSE),
+    ('q094', 'D', 'Programa de planilhas', FALSE),
+    ('q095', 'A', 'Verificar a origem e confirmar a informação em fontes confiáveis', TRUE),
+    ('q095', 'B', 'Compartilhar imediatamente com todos', FALSE),
+    ('q095', 'C', 'Confiar apenas na aparência do vídeo', FALSE),
+    ('q095', 'D', 'Ignorar qualquer aviso de segurança', FALSE),
+    ('q096', 'A', 'Uso de sistemas inteligentes para executar tarefas com menor intervenção manual', TRUE),
+    ('q096', 'B', 'Troca manual de todas as peças de um computador', FALSE),
+    ('q096', 'C', 'Impressão de documentos sem impressora', FALSE),
+    ('q096', 'D', 'Desligamento permanente da internet', FALSE),
+    ('q097', 'A', 'Sugerir itens ou conteúdos que podem interessar ao usuário', TRUE),
+    ('q097', 'B', 'Apagar automaticamente todos os arquivos', FALSE),
+    ('q097', 'C', 'Aumentar a capacidade física do disco', FALSE),
+    ('q097', 'D', 'Impedir pesquisas na internet', FALSE),
+    ('q098', 'A', 'Modelo de IA treinado para processar ou gerar linguagem', TRUE),
+    ('q098', 'B', 'Tipo de teclado', FALSE),
+    ('q098', 'C', 'Equipamento para medir temperatura', FALSE),
+    ('q098', 'D', 'Programa exclusivo para desenhar circuitos', FALSE),
+    ('q099', 'A', 'Para revisar resultados e considerar contexto e consequências', TRUE),
+    ('q099', 'B', 'Porque a IA sempre funciona sem dados', FALSE),
+    ('q099', 'C', 'Para impedir computadores de processar informações', FALSE),
+    ('q099', 'D', 'Porque toda decisão precisa ser aleatória', FALSE),
+    ('q100', 'A', 'Podem produzir informações incorretas ou inventadas', TRUE),
+    ('q100', 'B', 'Só conseguem responder usando números', FALSE),
+    ('q100', 'C', 'Não conseguem gerar nenhum tipo de texto', FALSE),
+    ('q100', 'D', 'Funcionam apenas desconectados', FALSE)
+) AS v(codigo, identificador, texto, correta)
+JOIN pergunta q ON q.codigo = v.codigo
+ORDER BY v.codigo, v.identificador
+ON CONFLICT (id_pergunta, identificador) DO NOTHING;
+
+COMMIT;
+
+-- =====================================================================
+--  Conferencia rapida (deve mostrar 100 / 400 / 2 / 88)
+-- =====================================================================
+SELECT (SELECT COUNT(*) FROM pergunta)    AS perguntas,
+       (SELECT COUNT(*) FROM alternativa) AS alternativas,
+       (SELECT COUNT(*) FROM categoria)   AS categorias,
+       (SELECT COUNT(*) FROM fonte)       AS fontes;
+
+
+-- ===================== 08-views-api.sql =====================
+-- =====================================================================
+--  CyberQuiz — Passo 11: views consumidas pela API
+--  Rode depois de 04-ddl.sql e 07-seed-questoes.sql.
+--
+--  Para que servem
+--    vw_pergunta_completa  -> uma linha por pergunta, com alternativas
+--                             agregadas em JSON e o gabarito.
+--    vw_quiz_json          -> o MESMO formato do questoes.json, pronto para
+--                             o endpoint GET /perguntas do backend.
+--    vw_ranking            -> soma de pontos por jogador (o MER diz que
+--                             ranking é consulta, não tabela).
+--    vw_desempenho_pergunta-> acertos/erros por pergunta (tela de estatística).
+--
+--  As views não guardam dados: refletem o que está nas tabelas.
+-- =====================================================================
+
+BEGIN;
+
+-- ---------------------------------------------------------------------
+-- 1) Pergunta completa
+-- ---------------------------------------------------------------------
+CREATE OR REPLACE VIEW vw_pergunta_completa AS
+SELECT
+    q.id_pergunta,
+    q.codigo,
+    c.nome        AS categoria,
+    q.titulo,
+    q.enunciado,
+    q.explicacao,
+    f.url         AS fonte_url,
+    f.descricao   AS fonte_descricao,
+    p.nome        AS publicador,
+    i.codigo      AS idioma,
+    -- {"A": "...", "B": "...", "C": "...", "D": "..."}
+    jsonb_object_agg(a.identificador, a.texto ORDER BY a.identificador)
+                  AS alternativas,
+    max(a.identificador) FILTER (WHERE a.correta)
+                  AS resposta_correta
+FROM pergunta q
+JOIN categoria   c ON c.id_categoria  = q.id_categoria
+JOIN fonte       f ON f.id_fonte      = q.id_fonte
+JOIN publicador  p ON p.id_publicador = f.id_publicador
+JOIN idioma      i ON i.id_idioma     = f.id_idioma
+JOIN alternativa a ON a.id_pergunta   = q.id_pergunta
+GROUP BY q.id_pergunta, q.codigo, c.nome, q.titulo, q.enunciado, q.explicacao,
+         f.url, f.descricao, p.nome, i.codigo;
+
+-- ---------------------------------------------------------------------
+-- 2) Formato do frontend
+--    Cada linha vira exatamente o objeto que js/quiz.js e js/session.js
+--    esperam: id, categoria, pergunta, opcoes, resposta_correta,
+--    explicacao, fonte.
+-- ---------------------------------------------------------------------
+CREATE OR REPLACE VIEW vw_quiz_json AS
+SELECT
+    substring(v.codigo from 2)::int AS id,
+    jsonb_build_object(
+        'id',               substring(v.codigo from 2)::int,
+        'categoria',        v.categoria,
+        'pergunta',         v.enunciado,
+        'opcoes',           v.alternativas,
+        'resposta_correta', v.resposta_correta,
+        'explicacao',       v.explicacao,
+        'fonte',            COALESCE(v.fonte_url, '')
+    ) AS questao
+FROM vw_pergunta_completa v;
+
+-- ---------------------------------------------------------------------
+-- 3) Ranking (MER: soma de valor_pontos por jogador)
+-- ---------------------------------------------------------------------
+CREATE OR REPLACE VIEW vw_ranking AS
+SELECT
+    j.id_jogador,
+    j.nome,
+    COALESCE(SUM(pt.valor_pontos), 0)         AS total_pontos,
+    COUNT(pt.id_pontuacao)                     AS respostas,
+    COUNT(*) FILTER (WHERE a.correta)          AS acertos,
+    COUNT(*) FILTER (WHERE a.correta IS FALSE) AS erros,
+    MAX(pt.data_resposta)                      AS ultima_resposta
+FROM jogador j
+LEFT JOIN pontuacao   pt ON pt.id_jogador    = j.id_jogador
+LEFT JOIN alternativa a  ON a.id_alternativa = pt.id_alternativa
+GROUP BY j.id_jogador, j.nome
+ORDER BY total_pontos DESC, acertos DESC, j.nome;
+
+-- ---------------------------------------------------------------------
+-- 4) Desempenho por pergunta (útil na apresentação: qual tema o público
+--    mais erra)
+-- ---------------------------------------------------------------------
+CREATE OR REPLACE VIEW vw_desempenho_pergunta AS
+SELECT
+    q.codigo,
+    c.nome AS categoria,
+    q.enunciado,
+    COUNT(pt.id_pontuacao) AS respostas,
+    COUNT(*) FILTER (WHERE a.correta) AS acertos,
+    ROUND(
+        100.0 * COUNT(*) FILTER (WHERE a.correta)
+        / NULLIF(COUNT(pt.id_pontuacao), 0), 1
+    ) AS percentual_acerto
+FROM pergunta q
+JOIN categoria c ON c.id_categoria = q.id_categoria
+LEFT JOIN pontuacao   pt ON pt.id_pergunta    = q.id_pergunta
+LEFT JOIN alternativa a  ON a.id_alternativa = pt.id_alternativa
+GROUP BY q.id_pergunta, q.codigo, c.nome, q.enunciado;
+
+-- Em Supabase, libera as views para as chaves anon/authenticated. O bloco
+-- só roda quando esses papéis existem (no PostgreSQL puro da disciplina
+-- eles não existem, e aí o GRANT é ignorado).
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+        EXECUTE 'GRANT SELECT ON vw_pergunta_completa, vw_quiz_json, vw_ranking, vw_desempenho_pergunta
+                 TO anon, authenticated, service_role';
+    END IF;
+END
+$$;
+
+COMMIT;
+
+-- =====================================================================
+--  Exemplos de consulta (é isso que o backend vai rodar)
+-- =====================================================================
+--
+-- GET /perguntas  -> lista completa em JSON
+--   SELECT jsonb_agg(questao ORDER BY id) AS perguntas FROM vw_quiz_json;
+--
+-- GET /perguntas?categoria=Inteligência Artificial
+--   SELECT jsonb_agg(v.questao ORDER BY v.id) AS perguntas
+--   FROM vw_quiz_json v
+--   WHERE v.questao->>'categoria' = 'Inteligência Artificial';
+--
+-- GET /ranking  -> 10 melhores
+--   SELECT nome, total_pontos, acertos, respostas
+--   FROM vw_ranking
+--   LIMIT 10;
+--
+-- POST /respostas  -> registra a resposta e o banco calcula os pontos
+--   INSERT INTO pontuacao (id_jogador, id_pergunta, id_alternativa)
+--   VALUES ($1, $2, $3);
+--
+-- =====================================================================
+--  RLS (Supabase)
+--  Tabelas criadas pelo SQL Editor ficam SEM Row Level Security. Se você
+--  ativar RLS, o backend com a chave `anon` passa a não ler nada sem uma
+--  policy. Como o backend usa a chave de serviço (`service_role`), o
+--  acesso continua liberado — mas se algum dia o frontend falar direto
+--  com o Supabase, habilite leitura pública assim:
+--
+--    ALTER TABLE categoria    ENABLE ROW LEVEL SECURITY;
+--    ALTER TABLE publicador   ENABLE ROW LEVEL SECURITY;
+--    ALTER TABLE idioma       ENABLE ROW LEVEL SECURITY;
+--    ALTER TABLE fonte        ENABLE ROW LEVEL SECURITY;
+--    ALTER TABLE pergunta     ENABLE ROW LEVEL SECURITY;
+--    ALTER TABLE alternativa  ENABLE ROW LEVEL SECURITY;
+--
+--    CREATE POLICY leitura_publica ON categoria   FOR SELECT TO anon USING (true);
+--    CREATE POLICY leitura_publica ON publicador  FOR SELECT TO anon USING (true);
+--    CREATE POLICY leitura_publica ON idioma      FOR SELECT TO anon USING (true);
+--    CREATE POLICY leitura_publica ON fonte       FOR SELECT TO anon USING (true);
+--    CREATE POLICY leitura_publica ON pergunta    FOR SELECT TO anon USING (true);
+--    CREATE POLICY leitura_publica ON alternativa FOR SELECT TO anon USING (true);
+-- =====================================================================
