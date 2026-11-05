@@ -168,4 +168,7 @@ GitHub Pages · WebP (14,9 MB → 1,1 MB de imagens) · `node --test`
 ## Equipe
 
 Projeto do **CyberQuiz** — segurança cibernética e IA.
-*Equipe: <preencher>* · *Orientação: <preencher>*
+
+**Equipe:** João Henrique · Felipe Gustavo · Nayra Sousa · Andrey Henrique · Murilo Morata
+
+**Orientação:** Andrea Ono Sakai · Aline Dos Santos

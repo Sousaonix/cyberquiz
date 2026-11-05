@@ -1,6 +1,6 @@
 -- =====================================================================
 --  CyberQuiz — Passo 8: carga de teste e consultas
---  Equipe : <preencher>
+--  Equipe : João Henrique, Felipe Gustavo, Nayra Sousa, Andrey Henrique e Murilo Morata
 --  Marco  : M4
 --  Rode depois do 04-ddl.sql:
 --    psql -d cyberquiz -v ON_ERROR_STOP=1 -f 05-dml-consultas.sql

@@ -16,7 +16,7 @@
 -- ===================== docs/04-ddl.sql =====================
 -- =====================================================================
 --  CyberQuiz — Passo 7: modelo físico (DDL)
---  Equipe        : <preencher>
+--  Equipe        : João Henrique, Felipe Gustavo, Nayra Sousa, Andrey Henrique e Murilo Morata
 --  Marco         : M3
 --  SGBD          : PostgreSQL 13+
 --  Justificativa : é o SGBD adotado na disciplina e o que a equipe de
