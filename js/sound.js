@@ -358,6 +358,13 @@ export function musicaLigada() {
 //  Painel de configurações
 // ---------------------------------------------------------------------
 
+let fecharPainel = null;
+
+// Usado pelo quiz quando a tela volta sozinha para o início.
+export function fecharPainelSom() {
+  fecharPainel?.();
+}
+
 export function iniciarPainelSom() {
   if (typeof document === "undefined") return;
 
@@ -402,6 +409,12 @@ export function iniciarPainelSom() {
   });
 
   fechar?.addEventListener("click", () => abrir(false));
+
+  // Fecha sem devolver o foco ao botão (o quiz pode estar trocando de tela).
+  fecharPainel = () => {
+    painel.hidden = true;
+    botao.setAttribute("aria-expanded", "false");
+  };
 
   document.addEventListener("keydown", (evento) => {
     if (evento.key === "Escape" && !painel.hidden) abrir(false);

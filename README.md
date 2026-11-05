@@ -4,6 +4,8 @@ Quiz de **segurança cibernética** e **inteligência artificial**: o jogador di
 
 Tem efeitos sonoros e uma **trilha synthwave** de fundo — tudo **sintetizado no navegador** (nenhum arquivo de áudio), com volume ajustável no botão de configurações no canto da tela.
 
+Pensado para estande: se a tela ficar parada, o quiz volta sozinho para o início — **60 s no resultado** (o próximo visitante não vê o placar do anterior) e **3 min no meio da rodada**.
+
 Projeto integrado de **Desenvolvimento Frontend**, **Modelagem de Banco de Dados** e **Algoritmos e Pensamento Computacional** — apresentado na Mostra de Tecnologia.
 
 <p align="center">

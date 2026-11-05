@@ -1,6 +1,7 @@
 import { createRound, formatElapsed, summarize } from "./session.js";
 import { API_URL, API_TIMEOUT_MS } from "./config.js";
 import {
+  fecharPainelSom,
   iniciarPainelSom,
   playClick,
   playCorrect,
@@ -23,6 +24,13 @@ const screens = {
 };
 
 const PLAYER_NAME_KEY = "cyberquiz.playerName";
+
+// Tempo parado até voltar sozinho para a tela inicial.
+// No resultado é curto (o próximo visitante não pode ver o placar do
+// anterior); no meio da rodada é mais folgado, para não atrapalhar quem
+// está lendo a explicação.
+const INATIVIDADE_MS = { quiz: 180_000, result: 60_000 };
+let temporizadorInatividade = null;
 
 // Uma ilustração por categoria de pergunta. As chaves estão sem acento e
 // em minúsculas para casar com o que vier da API (ou do questoes.json).
@@ -96,6 +104,8 @@ function showScreen(name) {
     screen.hidden = key !== name;
   }
 
+  reagendarInatividade();
+
   if (name === "quiz") {
     document.title = `Pergunta ${index + 1} de ${round.length} — CyberQuiz`;
   } else if (name === "result") {
@@ -105,6 +115,31 @@ function showScreen(name) {
   }
 
   focusAtTop(screens[name].querySelector("h1"));
+}
+
+function telaAtual() {
+  if (!screens.quiz.hidden) return "quiz";
+  if (!screens.result.hidden) return "result";
+  return "welcome";
+}
+
+function reagendarInatividade() {
+  clearTimeout(temporizadorInatividade);
+  temporizadorInatividade = null;
+
+  const limite = INATIVIDADE_MS[telaAtual()];
+  if (!limite) return;
+
+  temporizadorInatividade = setTimeout(voltarAoInicio, limite);
+}
+
+function voltarAoInicio() {
+  temporizadorInatividade = null;
+  round = [];
+  index = 0;
+  chosenLetters = [];
+  fecharPainelSom();
+  showScreen("welcome");
 }
 
 function showLoadError(message) {
@@ -480,6 +515,10 @@ for (const arte of Object.values(ARTE_POR_CATEGORIA)) {
 
 restorePlayerName();
 iniciarPainelSom();
+
+// Qualquer toque ou tecla reinicia a contagem de inatividade.
+document.addEventListener("pointerdown", reagendarInatividade, { passive: true });
+document.addEventListener("keydown", reagendarInatividade);
 
 nextButton.addEventListener("click", () => {
   playClick();
