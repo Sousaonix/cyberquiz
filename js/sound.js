@@ -330,8 +330,10 @@ export function iniciarPainelSom() {
   volumeEfeitos?.addEventListener("input", () => {
     definirVolumeEfeitos(Number(volumeEfeitos.value) / 100);
     if (rotuloEfeitos) rotuloEfeitos.textContent = `${volumeEfeitos.value}%`;
-    playClick(); // feedback imediato do volume escolhido
   });
+
+  // Só toca o "clique" ao soltar o slider, senão o arrasto vira metralhadora.
+  volumeEfeitos?.addEventListener("change", () => playClick());
 
   volumeMusica?.addEventListener("input", () => {
     definirVolumeMusica(Number(volumeMusica.value) / 100);
