@@ -181,36 +181,56 @@
       </section>
     </main>
 
-    <button
-      id="sound-toggle"
-      class="sound-toggle"
-      type="button"
-      aria-pressed="true"
-      aria-label="Desligar sons"
-      title="Desligar sons"
-    >
-      <svg class="sound-toggle__on" viewBox="0 0 24 24" aria-hidden="true">
-        <path
-          d="M4 9.5v5h3.2L12 18.4V5.6L7.2 9.5H4z"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linejoin="round"
-        />
-        <path d="M15.5 9a4 4 0 0 1 0 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-        <path d="M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-      </svg>
-      <svg class="sound-toggle__off" viewBox="0 0 24 24" aria-hidden="true">
-        <path
-          d="M4 9.5v5h3.2L12 18.4V5.6L7.2 9.5H4z"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linejoin="round"
-        />
-        <path d="M16 9.5l5 5M21 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-      </svg>
-    </button>
+    <div class="settings" role="region" aria-label="Configurações de som">
+      <div id="settings-panel" class="settings-panel" role="dialog" aria-labelledby="settings-title" hidden>
+        <h2 id="settings-title">Som</h2>
+
+        <div class="settings-field">
+          <div class="settings-label">
+            <label for="volume-efeitos">Efeitos</label>
+            <output id="volume-efeitos-valor" for="volume-efeitos">80%</output>
+          </div>
+          <input id="volume-efeitos" type="range" min="0" max="100" step="5" value="80" />
+        </div>
+
+        <div class="settings-field settings-field--switch">
+          <label for="musica-ligada">
+            <input id="musica-ligada" type="checkbox" checked />
+            <span>Música de fundo</span>
+          </label>
+        </div>
+
+        <div class="settings-field">
+          <div class="settings-label">
+            <label for="volume-musica">Volume da música</label>
+            <output id="volume-musica-valor" for="volume-musica">35%</output>
+          </div>
+          <input id="volume-musica" type="range" min="0" max="100" step="5" value="35" />
+        </div>
+
+        <button id="settings-close" class="neon-button neon-button--secondary settings-close" type="button">
+          Fechar
+        </button>
+      </div>
+
+      <button
+        id="settings-toggle"
+        class="settings-toggle"
+        type="button"
+        aria-haspopup="dialog"
+        aria-expanded="false"
+        aria-controls="settings-panel"
+        aria-label="Configurações de som"
+        title="Configurações de som"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 7h9M18 7h2M4 12h3M12 12h8M4 17h11M20 17h0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          <circle cx="16" cy="7" r="2.2" fill="none" stroke="currentColor" stroke-width="1.8" />
+          <circle cx="9.5" cy="12" r="2.2" fill="none" stroke="currentColor" stroke-width="1.8" />
+          <circle cx="18.5" cy="17" r="2.2" fill="none" stroke="currentColor" stroke-width="1.8" />
+        </svg>
+      </button>
+    </div>
 
     <script type="module" src="js/quiz.js"></script>
   </body>

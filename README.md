@@ -2,6 +2,8 @@
 
 Quiz de **segurança cibernética** e **inteligência artificial**: o jogador digita o nome, responde 10 perguntas sorteadas de um banco de 100 e recebe o placar, o tempo, uma explicação com a fonte de cada resposta e o **ranking** dos jogadores.
 
+Tem efeitos sonoros e música ambiente — os dois **sintetizados no navegador** (nenhum arquivo de áudio), com volume ajustável no botão de configurações no canto da tela.
+
 Projeto integrado de **Desenvolvimento Frontend**, **Modelagem de Banco de Dados** e **Algoritmos e Pensamento Computacional** — apresentado na Mostra de Tecnologia.
 
 <p align="center">
@@ -61,7 +63,7 @@ cyberquiz/
 | `css/styles.css` | Visual neon, um tema de cor por pergunta |
 | `js/quiz.js` | Interação, nome do jogador, cronômetro, API e ranking |
 | `js/session.js` | Sorteio da rodada, placar e formatação do tempo |
-| `js/sound.js` | Efeitos sonoros sintetizados na hora (Web Audio API) |
+| `js/sound.js` | Efeitos sonoros e música ambiente sintetizados (Web Audio API) |
 | `js/config.js` | Endereço da API |
 | `questoes.json` | Banco local usado no modo offline |
 | `assets/` | Logo, mascotes, fundos (WebP) e ilustrações por categoria (SVG) |

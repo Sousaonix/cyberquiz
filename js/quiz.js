@@ -1,8 +1,7 @@
 import { createRound, formatElapsed, summarize } from "./session.js";
 import { API_URL, API_TIMEOUT_MS } from "./config.js";
 import {
-  configurarBotaoSom,
-  lerPreferenciaDeSom,
+  iniciarPainelSom,
   playClick,
   playCorrect,
   playFinish,
@@ -480,8 +479,7 @@ for (const arte of Object.values(ARTE_POR_CATEGORIA)) {
 }
 
 restorePlayerName();
-lerPreferenciaDeSom();
-configurarBotaoSom(document.querySelector("#sound-toggle"));
+iniciarPainelSom();
 
 nextButton.addEventListener("click", () => {
   playClick();
