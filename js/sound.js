@@ -8,8 +8,8 @@
 //  contexto nasce no primeiro clique (Jogar, abrir as configurações...).
 // =====================================================================
 
-const CHAVE_PREFERENCIAS = "cyberquiz.som";
-const PADRAO = { efeitos: 0.8, musica: 0.35, musicaLigada: true };
+const CHAVE_PREFERENCIAS = "cyberquiz.som.v2";
+const PADRAO = { efeitos: 0.8, musica: 0.45, musicaLigada: true };
 
 let contexto = null;
 let ganhoEfeitos = null;
@@ -182,54 +182,140 @@ export function playFinish(venceu = true) {
 // ---------------------------------------------------------------------
 //  Música ambiente
 //
-//  Um pad lento: cada acorde entra com ataque longo e sai devagar, então
-//  as notas se misturam. A progressão é menor e sem batida — serve de
-//  fundo, não compete com o jogo.
+//  Trilha synthwave: 100 BPM em Lá menor (Am–F–C–G). O arpejo em 16avos
+//  e o baixo pulsante dão a energia de fliperama; o pad segura a harmonia
+//  e a bateria fica discreta. Sem vocal e com volume baixo, para não
+//  competir com a leitura da pergunta.
 // ---------------------------------------------------------------------
 
-const ACORDES = [
-  [146.83, 220.0, 293.66], // Dm
-  [130.81, 196.0, 261.63], // C
-  [174.61, 261.63, 349.23], // F
-  [196.0, 246.94, 293.66], // G
+const BPM = 100;
+const BATIDA = 60 / BPM; // 0,6 s
+const COMPASSO = BATIDA * 4; // 2,4 s
+
+const PROGRESSAO = [
+  { raiz: 110.0, acorde: [220.0, 261.63, 329.63] }, // Am
+  { raiz: 87.31, acorde: [174.61, 220.0, 261.63] }, // F
+  { raiz: 130.81, acorde: [261.63, 329.63, 392.0] }, // C
+  { raiz: 98.0, acorde: [196.0, 246.94, 293.66] }, // G
 ];
 
-const DURACAO_ACORDE = 8; // segundos
-const BRILHOS = [523.25, 587.33, 659.25, 783.99, 880.0];
+// Ordem das notas do arpejo dentro do compasso (16 colcheias).
+const ARPEJO = [0, 1, 2, 3, 2, 1, 0, 2, 1, 3, 2, 1, 0, 2, 3, 1];
 
 let agendaMusica = null;
-let indiceAcorde = 0;
+let indiceCompasso = 0;
+let bufferRuido = null;
 
-function tocarAcorde() {
-  const acorde = ACORDES[indiceAcorde % ACORDES.length];
+function ruido({ atraso = 0, duracao = 0.1, volume = 0.05, frequencia = 1800, tipoFiltro = "bandpass", q = 0.8 }) {
+  const ctx = garantirContexto();
+  if (!ctx || !ganhoMusica) return;
 
-  acorde.forEach((frequencia, indice) => {
+  if (!bufferRuido) {
+    bufferRuido = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.3), ctx.sampleRate);
+    const dados = bufferRuido.getChannelData(0);
+    for (let i = 0; i < dados.length; i += 1) dados[i] = Math.random() * 2 - 1;
+  }
+
+  const inicio = ctx.currentTime + atraso;
+  const fonte = ctx.createBufferSource();
+  fonte.buffer = bufferRuido;
+
+  const filtro = ctx.createBiquadFilter();
+  filtro.type = tipoFiltro;
+  filtro.frequency.value = frequencia;
+  filtro.Q.value = q;
+
+  const ganho = ctx.createGain();
+  ganho.gain.setValueAtTime(volume, inicio);
+  ganho.gain.exponentialRampToValueAtTime(0.0001, inicio + duracao);
+
+  fonte.connect(filtro).connect(ganho).connect(ganhoMusica);
+  fonte.start(inicio);
+  fonte.stop(inicio + duracao + 0.02);
+}
+
+function tocarCompasso() {
+  const compasso = PROGRESSAO[indiceCompasso % PROGRESSAO.length];
+  const notas = [...compasso.acorde, compasso.acorde[0] * 2];
+  const base = 0.08; // pequena folga para o agendamento
+
+  // Pad: acorde sustentado, só para colar a harmonia.
+  compasso.acorde.forEach((frequencia, indice) => {
     nota({
       frequencia,
-      tipo: indice === 0 ? "sine" : "triangle",
-      duracao: DURACAO_ACORDE + 1.5,
-      volume: indice === 0 ? 0.09 : 0.055,
-      atraso: indice * 0.35,
-      ataque: 2.4,
+      tipo: "triangle",
+      duracao: COMPASSO,
+      volume: 0.03,
+      atraso: base + indice * 0.02,
+      ataque: 0.45,
       destino: "musica",
     });
   });
 
-  // Um "sino" de vez em quando, bem discreto, para o loop não ficar parado.
-  if (indiceAcorde % 2 === 1) {
-    const brilho = BRILHOS[Math.floor(Math.random() * BRILHOS.length)];
+  // Baixo pulsante em colcheias.
+  for (let i = 0; i < 8; i += 1) {
     nota({
-      frequencia: brilho,
-      tipo: "sine",
-      duracao: 3.2,
-      volume: 0.035,
-      atraso: 1.5,
-      ataque: 0.5,
+      frequencia: compasso.raiz,
+      tipo: "sawtooth",
+      duracao: 0.22,
+      volume: 0.05,
+      atraso: base + i * (BATIDA / 2),
+      ataque: 0.008,
       destino: "musica",
     });
   }
 
-  indiceAcorde += 1;
+  // Arpejo em 16avos — é o que dá o brilho "cyber".
+  for (let i = 0; i < 16; i += 1) {
+    nota({
+      frequencia: notas[ARPEJO[i] % notas.length],
+      tipo: "triangle",
+      duracao: 0.12,
+      volume: 0.028,
+      atraso: base + i * (BATIDA / 4),
+      ataque: 0.004,
+      destino: "musica",
+    });
+  }
+
+  // Bateria discreta: bumbo nos tempos 1 e 3, caixa nos tempos 2 e 4.
+  [0, 2].forEach((tempo) => {
+    nota({
+      frequencia: 140,
+      ateFrequencia: 45,
+      tipo: "sine",
+      duracao: 0.16,
+      volume: 0.12,
+      atraso: base + tempo * BATIDA,
+      ataque: 0.004,
+      destino: "musica",
+    });
+  });
+
+  [1, 3].forEach((tempo) => {
+    ruido({
+      atraso: base + tempo * BATIDA,
+      duracao: 0.11,
+      volume: 0.045,
+      frequencia: 1900,
+      tipoFiltro: "bandpass",
+      q: 0.7,
+    });
+  });
+
+  // Chimbal nos contratempos.
+  for (let i = 0; i < 4; i += 1) {
+    ruido({
+      atraso: base + i * BATIDA + BATIDA / 2,
+      duracao: 0.035,
+      volume: 0.022,
+      frequencia: 7500,
+      tipoFiltro: "highpass",
+      q: 0.6,
+    });
+  }
+
+  indiceCompasso += 1;
 }
 
 export function iniciarMusica() {
@@ -239,8 +325,8 @@ export function iniciarMusica() {
   atualizarVolumeDaMusica();
   if (agendaMusica) return;
 
-  tocarAcorde();
-  agendaMusica = setInterval(tocarAcorde, DURACAO_ACORDE * 1000);
+  tocarCompasso();
+  agendaMusica = setInterval(tocarCompasso, COMPASSO * 1000);
 }
 
 export function pararMusica() {
