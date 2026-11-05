@@ -138,6 +138,13 @@ function voltarAoInicio() {
   round = [];
   index = 0;
   chosenLetters = [];
+  playerName = "";
+
+  // Limpa o nome para o próximo visitante não jogar como o anterior.
+  playerNameInput.value = "";
+  playerNameError.hidden = true;
+  playerNameInput.removeAttribute("aria-invalid");
+
   fecharPainelSom();
   showScreen("welcome");
 }
